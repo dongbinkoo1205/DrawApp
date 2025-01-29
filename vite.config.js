@@ -5,13 +5,13 @@ export default defineConfig({
     plugins: [react()],
     resolve: {
         alias: {
-            '@': '/src',
+            '@': '/src', // 🔹 경로 별칭 설정
         },
     },
     build: {
         outDir: 'dist',
         rollupOptions: {
-            input: 'index.html', // 🔹 번들링 시 진입점을 명확히 지정
+            input: 'index.html', // 🔹 진입점 설정
         },
     },
     define: {
@@ -20,7 +20,7 @@ export default defineConfig({
     server: {
         port: 5173,
         strictPort: true,
-        https: true, // 🔹 HTTPS 환경에서 실행 (WebRTC 필요)
+        https: true, // 🔹 HTTPS 환경 설정
     },
     base: '/',
 });
