@@ -14,10 +14,20 @@ const ScreenShare = () => {
             if (!peerRef.current) {
                 peerRef.current = createPeer(false);
             }
-            await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
-            const answer = await peerRef.current.createAnswer();
-            await peerRef.current.setLocalDescription(answer);
-            socket.emit('answer', answer);
+            try {
+                // "stable" 상태인지 체크
+                if (peerRef.current.signalingState !== 'stable') {
+                    console.log('Signaling state is not stable, waiting...');
+                    return; // 상태가 "stable"이 아니면 기다리기
+                }
+
+                await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
+                const answer = await peerRef.current.createAnswer();
+                await peerRef.current.setLocalDescription(answer);
+                socket.emit('answer', answer);
+            } catch (err) {
+                console.error('Offer 처리 실패:', err);
+            }
         });
 
         socket.on('answer', (answer) => {
