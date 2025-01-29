@@ -223,7 +223,14 @@ const ScreenShare = () => {
         // ✅ PeerConnection 초기화 (Offer 수신 전 미리 설정)
         function initializePeerConnection() {
             peerConnection.current = new RTCPeerConnection({
-                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    {
+                        urls: 'turn:openrelay.metered.ca:80',
+                        username: 'openrelayproject',
+                        credential: 'openrelayproject',
+                    },
+                ],
             });
 
             peerConnection.current.onicecandidate = (event) => {
@@ -255,11 +262,18 @@ const ScreenShare = () => {
         });
 
         socket.on('ice-candidate', async (data) => {
+            console.log('✅ ICE Candidate 받음:', data);
             if (peerConnection.current) {
                 await peerConnection.current.addIceCandidate(new RTCIceCandidate(data));
             }
         });
+        socket.on('connect', () => {
+            console.log('✅ WebSocket 연결됨');
+        });
 
+        socket.on('disconnect', () => {
+            console.error('🚨 WebSocket 연결 끊김');
+        });
         return () => {
             socket.off('screen-sharing-status');
             socket.off('offer');

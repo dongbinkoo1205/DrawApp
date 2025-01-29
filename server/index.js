@@ -78,7 +78,9 @@ let screenSharer = null; // 현재 화면 공유 중인 사용자 ID
 
 io.on('connection', (socket) => {
     console.log('✅ 클라이언트 연결됨:', socket.id);
-
+    socket.onAny((event, ...args) => {
+        console.log(`📡 WebSocket 이벤트: ${event}`, args);
+    });
     // 현재 화면 공유 상태 전송
     socket.emit('screen-sharing-status', screenSharer !== null);
 
@@ -110,6 +112,7 @@ io.on('connection', (socket) => {
 
     socket.on('ice-candidate', (data) => {
         socket.broadcast.emit('ice-candidate', data);
+        console.log(`✅ ICE Candidate 수신:`, data);
     });
 
     socket.on('disconnect', () => {
