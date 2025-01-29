@@ -62,7 +62,7 @@ const server = http.createServer(app);
 // ✅ CORS 설정
 app.use(
     cors({
-        origin: ['https://drawapp-five.vercel.app'], // Vercel 프론트엔드 허용
+        origin: ['https://drawapp-five.vercel.app'],
         methods: ['GET', 'POST'],
         credentials: true,
     })
@@ -80,16 +80,16 @@ let screenSharer = null; // 현재 화면 공유 중인 사용자 ID
 io.on('connection', (socket) => {
     console.log('✅ 클라이언트 연결됨:', socket.id);
 
-    // 화면 공유 상태 전송
+    // 현재 화면 공유 상태 전송
     socket.emit('screen-sharing-status', screenSharer !== null);
 
-    // WebRTC 시그널링
+    // WebRTC 시그널링 (Offer/Answer/ICE Candidate 전송)
     socket.on('offer', (data) => {
-        socket.broadcast.emit('offer', data); // 다른 모든 클라이언트에게 전달
+        socket.broadcast.emit('offer', data);
     });
 
     socket.on('answer', (data) => {
-        socket.broadcast.emit('answer', data); // 다른 모든 클라이언트에게 전달
+        socket.broadcast.emit('answer', data);
     });
 
     socket.on('ice-candidate', (data) => {
@@ -122,7 +122,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// ✅ 포트 8080에서 실행
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
     console.log(`✅ 서버가 http://localhost:${PORT}에서 실행 중입니다.`);

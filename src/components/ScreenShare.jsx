@@ -196,6 +196,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 
+// ✅ WebSocket 연결 설정
 const socket = io('https://drawapp-ne15.onrender.com', {
     transports: ['websocket', 'polling'],
     reconnection: true,
@@ -228,9 +229,9 @@ const ScreenShare = () => {
             await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data));
         });
 
-        socket.on('ice-candidate', (data) => {
+        socket.on('ice-candidate', async (data) => {
             if (peerConnection.current) {
-                peerConnection.current.addIceCandidate(new RTCIceCandidate(data));
+                await peerConnection.current.addIceCandidate(new RTCIceCandidate(data));
             }
         });
 
@@ -252,7 +253,10 @@ const ScreenShare = () => {
             socket.emit('start-screen-share');
 
             // WebRTC P2P 연결 설정
-            peerConnection.current = new RTCPeerConnection();
+            peerConnection.current = new RTCPeerConnection({
+                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }], // ✅ STUN 서버 추가
+            });
+
             stream.getTracks().forEach((track) => peerConnection.current.addTrack(track, stream));
 
             peerConnection.current.onicecandidate = (event) => {
@@ -291,12 +295,12 @@ const ScreenShare = () => {
     return (
         <div>
             <h2>화면 공유</h2>
-            <video ref={videoRef} autoPlay playsInline style={{ width: '100%', height: '70vh', background: '#000' }} />
+            <video ref={videoRef} autoPlay playsInline style={{ width: '100%', height: '50vh', background: '#000' }} />
             <video
                 ref={remoteVideoRef}
                 autoPlay
                 playsInline
-                style={{ width: '100%', height: '70vh', background: '#000' }}
+                style={{ width: '100%', height: '50vh', background: '#000' }}
             />
 
             {!isAnotherUserSharing && !isScreenSharing && (
