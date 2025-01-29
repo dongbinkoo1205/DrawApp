@@ -209,11 +209,17 @@ const ScreenShare = () => {
     const remoteVideoRef = useRef(null);
     const [isScreenSharing, setIsScreenSharing] = useState(false);
     const [isAnotherUserSharing, setIsAnotherUserSharing] = useState(false);
+    const [shareBlocked, setShareBlocked] = useState(false);
     const peerConnection = useRef(null);
 
     useEffect(() => {
         socket.on('screen-sharing-status', (status) => {
             setIsAnotherUserSharing(status);
+        });
+
+        socket.on('screen-share-denied', (message) => {
+            alert(message);
+            setShareBlocked(true);
         });
 
         // ✅ Offer 수신 시 PeerConnection 생성
@@ -264,6 +270,8 @@ const ScreenShare = () => {
 
     const startScreenShare = async () => {
         try {
+            if (shareBlocked) return;
+
             const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
             if (localVideoRef.current) {
                 localVideoRef.current.srcObject = stream;
@@ -318,7 +326,10 @@ const ScreenShare = () => {
                 style={{ width: '100%', height: '50vh', background: '#000' }}
             />
 
-            <button onClick={startScreenShare}>화면 공유하기</button>
+            {!isAnotherUserSharing && !isScreenSharing && <button onClick={startScreenShare}>화면 공유하기</button>}
+            {isAnotherUserSharing && (
+                <p style={{ color: 'red', fontWeight: 'bold' }}>🚀 다른 사용자가 화면을 공유 중입니다.</p>
+            )}
         </div>
     );
 };
