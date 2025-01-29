@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom'; // ✅ `useParams` 사용 (Router X)
-import Chat from './Chat';
+// import Chat from './Chat';
 import Canvas from './Canvas';
 import ScreenShare from './ScreenShare';
 
@@ -18,9 +18,9 @@ const Session = () => {
                     <Canvas />
                     <ScreenShare />
                 </div>
-                <div className="w-80">
+                {/* <div className="w-80">
                     <Chat />
-                </div>
+                </div> */}
             </div>
         </div>
     );
