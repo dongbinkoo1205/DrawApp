@@ -16,9 +16,8 @@ const ScreenShare = () => {
             }
 
             try {
-                // signalingState가 "stable"이 아닐 때 기다리기
+                // "stable" 상태 확인 후 설정
                 await waitForStableState(peerRef.current);
-
                 await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
                 console.log('✅ Remote description 설정 완료');
 
@@ -36,12 +35,6 @@ const ScreenShare = () => {
             console.log('📡 WebRTC Answer 수신');
             if (peerRef.current) {
                 try {
-                    // Answer를 설정할 필요가 없는 경우 체크
-                    if (peerRef.current.signalingState === 'stable') {
-                        console.warn('🔍 Answer를 설정할 필요가 없음');
-                        return;
-                    }
-
                     await peerRef.current.setRemoteDescription(new RTCSessionDescription(answer));
                     console.log('✅ Remote answer 설정 완료');
                 } catch (err) {
@@ -69,20 +62,17 @@ const ScreenShare = () => {
         };
     }, []);
 
-    // Peer 객체 생성
     const createPeer = (initiator) => {
         const peer = new RTCPeerConnection({
             iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
         });
 
-        // ICE Candidate 처리
         peer.onicecandidate = (event) => {
             if (event.candidate) {
-                socket.emit('candidate', event.candidate); // ICE Candidate 서버에 전송
+                socket.emit('candidate', event.candidate);
             }
         };
 
-        // 스트림 처리
         peer.ontrack = (event) => {
             console.log('🎥 비디오 트랙 수신');
             if (videoRef.current) {
@@ -90,7 +80,6 @@ const ScreenShare = () => {
             }
         };
 
-        // 화면 공유 트랙 추가
         if (initiator) {
             console.log('🎥 화면 공유 트랙 추가');
             mediaStream.current.getTracks().forEach((track) => {
@@ -98,9 +87,7 @@ const ScreenShare = () => {
             });
 
             peer.createOffer()
-                .then((offer) => {
-                    return peer.setLocalDescription(offer);
-                })
+                .then((offer) => peer.setLocalDescription(offer))
                 .then(() => {
                     console.log('📡 Offer 전송');
                     socket.emit('offer', peer.localDescription); // 서버로 offer 전송
@@ -111,7 +98,7 @@ const ScreenShare = () => {
         return peer;
     };
 
-    // 안정적인 연결 상태 확인
+    // WebRTC 세션이 "stable" 상태일 때만 offer를 처리하도록 대기하는 함수
     const waitForStableState = async (peer) => {
         let retries = 0;
         while (peer.signalingState !== 'stable' && retries < 5) {
@@ -125,7 +112,6 @@ const ScreenShare = () => {
         }
     };
 
-    // 화면 공유 시작
     const startScreenShare = async () => {
         try {
             console.log('🎥 화면 공유 시작');
@@ -134,7 +120,7 @@ const ScreenShare = () => {
             setIsSharing(true);
 
             if (!peerRef.current) {
-                peerRef.current = createPeer(true); // Peer 생성
+                peerRef.current = createPeer(true);
             }
 
             if (videoRef.current) {
@@ -147,7 +133,6 @@ const ScreenShare = () => {
         }
     };
 
-    // 화면 공유 중지
     const stopScreenShare = () => {
         console.log('🛑 화면 공유 중지');
         if (mediaStream.current) {
