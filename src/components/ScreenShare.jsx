@@ -9,6 +9,7 @@ const ScreenShare = () => {
 
     useEffect(() => {
         socket.on('offer', async (offer) => {
+            console.log('📡 WebRTC Offer 수신');
             if (!peerRef.current) {
                 peerRef.current = createPeer(false);
             }
@@ -19,12 +20,14 @@ const ScreenShare = () => {
         });
 
         socket.on('answer', (answer) => {
+            console.log('📡 WebRTC Answer 수신');
             if (peerRef.current) {
                 peerRef.current.setRemoteDescription(new RTCSessionDescription(answer));
             }
         });
 
         socket.on('candidate', (candidate) => {
+            console.log('📡 ICE Candidate 수신');
             if (peerRef.current) {
                 peerRef.current.addIceCandidate(new RTCIceCandidate(candidate));
             }
@@ -49,12 +52,14 @@ const ScreenShare = () => {
         };
 
         peer.ontrack = (event) => {
+            console.log('🎥 수신된 비디오 스트림 설정');
             if (videoRef.current) {
                 videoRef.current.srcObject = event.streams[0];
             }
         };
 
         if (initiator) {
+            console.log('🎥 공유된 화면 트랙 추가');
             mediaStream.current.getTracks().forEach((track) => {
                 peer.addTrack(track, mediaStream.current);
             });
@@ -70,6 +75,7 @@ const ScreenShare = () => {
 
     const startScreenShare = async () => {
         try {
+            console.log('🎥 화면 공유 시작');
             const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
             mediaStream.current = stream;
             setIsSharing(true);
@@ -78,13 +84,18 @@ const ScreenShare = () => {
                 peerRef.current = createPeer(true);
             }
 
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+            }
+
             stream.getVideoTracks()[0].onended = () => stopScreenShare();
         } catch (err) {
-            console.error('Screen share error:', err);
+            console.error('❌ 화면 공유 오류:', err);
         }
     };
 
     const stopScreenShare = () => {
+        console.log('🛑 화면 공유 중지');
         if (mediaStream.current) {
             mediaStream.current.getTracks().forEach((track) => track.stop());
             setIsSharing(false);
