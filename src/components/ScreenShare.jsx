@@ -15,6 +15,7 @@ const ScreenShare = () => {
             }
 
             try {
+                console.log('📡 Offer 수신 후 signalingState:', peerRef.current.signalingState);
                 await waitForStableState(peerRef.current);
 
                 if (peerRef.current.signalingState === 'stable') {
@@ -51,14 +52,11 @@ const ScreenShare = () => {
 
             if (!peerRef.current) {
                 console.error('❌ peerRef.current가 존재하지 않습니다.');
-                return; // peerRef가 없으면 진행하지 않음
+                return;
             }
 
             try {
-                // RTCIceCandidate가 올바르게 생성되었는지 확인
                 const iceCandidate = new RTCIceCandidate(candidate);
-
-                // ICE 후보를 추가
                 await peerRef.current.addIceCandidate(iceCandidate);
                 console.log('✅ ICE Candidate 추가 완료');
             } catch (err) {
