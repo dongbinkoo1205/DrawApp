@@ -193,32 +193,97 @@
 // };
 
 // export default ScreenShare;
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import io from 'socket.io-client';
+
+const socket = io('https://drawapp-ne15.onrender.com', { transports: ['websocket'] });
 
 const ScreenShare = () => {
     const videoRef = useRef(null);
+    const [isScreenSharing, setIsScreenSharing] = useState(false);
+    const [isAnotherUserSharing, setIsAnotherUserSharing] = useState(false);
 
     useEffect(() => {
-        // ✅ 화면 공유 시작
-        const startScreenShare = async () => {
-            try {
-                const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-                if (videoRef.current) {
-                    videoRef.current.srcObject = stream; // 화면 데이터를 video 요소에 연결
-                }
-            } catch (error) {
-                console.error('❌ 화면 공유 실패:', error);
-                alert('📌 화면 공유를 허용해야 합니다. HTTPS 환경에서 실행해주세요.');
-            }
-        };
+        // ✅ 현재 화면 공유 상태를 서버에서 받아오기
+        socket.on('screen-sharing-status', (status) => {
+            setIsAnotherUserSharing(status);
+        });
 
-        startScreenShare();
+        return () => {
+            socket.off('screen-sharing-status');
+        };
     }, []);
+
+    // ✅ 화면 공유 시작
+    const startScreenShare = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+            }
+            setIsScreenSharing(true);
+            socket.emit('start-screen-share');
+
+            // 화면 공유 종료 시 서버에 알림
+            stream.getVideoTracks()[0].onended = () => {
+                stopScreenShare();
+            };
+        } catch (error) {
+            console.error('❌ 화면 공유 실패:', error);
+            alert('📌 화면 공유를 허용해야 합니다. HTTPS 환경에서 실행해주세요.');
+        }
+    };
+
+    // ✅ 화면 공유 중지
+    const stopScreenShare = () => {
+        if (videoRef.current && videoRef.current.srcObject) {
+            videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+        }
+        setIsScreenSharing(false);
+        socket.emit('stop-screen-share');
+    };
 
     return (
         <div>
             <h2>화면 공유</h2>
             <video ref={videoRef} autoPlay playsInline style={{ width: '100%', height: '70vh', background: '#000' }} />
+
+            {/* ✅ 현재 화면 공유 중이 아닌 경우에만 버튼 표시 */}
+            {!isAnotherUserSharing && !isScreenSharing && (
+                <button
+                    onClick={startScreenShare}
+                    style={{
+                        marginTop: '10px',
+                        padding: '10px 15px',
+                        background: 'blue',
+                        color: 'white',
+                        border: 'none',
+                    }}
+                >
+                    화면 공유하기
+                </button>
+            )}
+
+            {/* ✅ 화면 공유 중일 때만 중지 버튼 표시 */}
+            {isScreenSharing && (
+                <button
+                    onClick={stopScreenShare}
+                    style={{
+                        marginTop: '10px',
+                        padding: '10px 15px',
+                        background: 'red',
+                        color: 'white',
+                        border: 'none',
+                    }}
+                >
+                    화면 공유 중지
+                </button>
+            )}
+
+            {/* ✅ 다른 사용자가 공유 중일 경우 메시지 표시 */}
+            {isAnotherUserSharing && !isScreenSharing && (
+                <p style={{ color: 'red', fontWeight: 'bold' }}>🚀 다른 사용자가 화면을 공유 중입니다.</p>
+            )}
         </div>
     );
 };

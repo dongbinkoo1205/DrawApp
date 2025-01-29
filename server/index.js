@@ -59,38 +59,54 @@ const cors = require('cors');
 const app = express();
 const server = http.createServer(app);
 
-// ✅ CORS 설정 추가
-app.use(
-    cors({
-        origin: ['https://drawapp-five.vercel.app'], // 프론트엔드 주소 허용
-        methods: ['GET', 'POST'],
-        allowedHeaders: ['Content-Type'],
-        credentials: true,
-    })
-);
+app.use(cors({
+    origin: ['https://drawapp-five.vercel.app'], // 프론트엔드 주소 허용
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type'],
+    credentials: true
+}));
 
 const io = new Server(server, {
     cors: {
         origin: 'https://drawapp-five.vercel.app', // ✅ Vercel 프론트엔드 허용
-        methods: ['GET', 'POST'],
-    },
+        methods: ['GET', 'POST']
+    }
 });
 
-// ✅ WebSocket 연결 로그 추가
+let screenSharer = null; // 현재 화면 공유 중인 사용자 ID
+
 io.on('connection', (socket) => {
     console.log('✅ 클라이언트가 WebSocket에 연결됨:', socket.id);
 
-    socket.on('chat', (msg) => {
-        io.emit('chat', msg); // ✅ 모든 클라이언트에게 메시지 전송
+    // 현재 화면 공유 중인 사용자 ID를 새로 연결된 클라이언트에 전송
+    socket.emit('screen-sharing-status', screenSharer !== null);
+
+    socket.on('start-screen-share', () => {
+        if (!screenSharer) {
+            screenSharer = socket.id;
+            io.emit('screen-sharing-status', true);
+            console.log(`📺 화면 공유 시작: ${socket.id}`);
+        }
+    });
+
+    socket.on('stop-screen-share', () => {
+        if (screenSharer === socket.id) {
+            screenSharer = null;
+            io.emit('screen-sharing-status', false);
+            console.log(`❌ 화면 공유 종료: ${socket.id}`);
+        }
     });
 
     socket.on('disconnect', () => {
         console.log('❌ 클라이언트 연결 해제됨:', socket.id);
+        if (screenSharer === socket.id) {
+            screenSharer = null;
+            io.emit('screen-sharing-status', false);
+            console.log('❌ 화면 공유 중이던 사용자가 나갔습니다.');
+        }
     });
 });
 
-// ✅ 8080 포트로 변경 (Render에서 사용)
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
     console.log(`✅ 서버가 http://localhost:${PORT}에서 실행 중입니다.`);
-});
