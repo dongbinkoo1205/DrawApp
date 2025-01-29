@@ -51,9 +51,12 @@
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 
-// ✅ WebSocket 서버 주소 변경
-const socket = io('https://drawapp-ne15.onrender.com', { transports: ['websocket'] });
-
+const socket = io('https://drawapp-ne15.onrender.com', {
+    transports: ['websocket', 'polling'], // ✅ WebSocket & Polling 허용
+    reconnection: true, // 자동 재연결
+    reconnectionAttempts: 10,
+    reconnectionDelay: 2000,
+});
 const Chat = () => {
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState('');

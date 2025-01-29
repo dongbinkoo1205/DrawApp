@@ -196,7 +196,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 
-const socket = io('https://drawapp-ne15.onrender.com', { transports: ['websocket'] });
+// ✅ WebSocket 설정 변경
+const socket = io('https://drawapp-ne15.onrender.com', {
+    transports: ['websocket', 'polling'], // ✅ WebSocket & Polling 허용
+    reconnection: true, // 자동 재연결
+    reconnectionAttempts: 10,
+    reconnectionDelay: 2000,
+});
 
 const ScreenShare = () => {
     const videoRef = useRef(null);
@@ -248,7 +254,6 @@ const ScreenShare = () => {
             <h2>화면 공유</h2>
             <video ref={videoRef} autoPlay playsInline style={{ width: '100%', height: '70vh', background: '#000' }} />
 
-            {/* ✅ 현재 화면 공유 중이 아닌 경우에만 버튼 표시 */}
             {!isAnotherUserSharing && !isScreenSharing && (
                 <button
                     onClick={startScreenShare}
@@ -264,7 +269,6 @@ const ScreenShare = () => {
                 </button>
             )}
 
-            {/* ✅ 화면 공유 중일 때만 중지 버튼 표시 */}
             {isScreenSharing && (
                 <button
                     onClick={stopScreenShare}
@@ -280,7 +284,6 @@ const ScreenShare = () => {
                 </button>
             )}
 
-            {/* ✅ 다른 사용자가 공유 중일 경우 메시지 표시 */}
             {isAnotherUserSharing && !isScreenSharing && (
                 <p style={{ color: 'red', fontWeight: 'bold' }}>🚀 다른 사용자가 화면을 공유 중입니다.</p>
             )}
