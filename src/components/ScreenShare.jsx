@@ -8,7 +8,6 @@ const ScreenShare = () => {
     const mediaStream = useRef(null);
 
     useEffect(() => {
-        // WebRTC 시그널링 처리
         socket.on('offer', async (offer) => {
             console.log('📡 WebRTC Offer 수신');
             if (!peerRef.current) {
@@ -18,7 +17,6 @@ const ScreenShare = () => {
             try {
                 await waitForStableState(peerRef.current);
 
-                // "stable" 상태 확인 후 설정
                 if (peerRef.current.signalingState === 'stable') {
                     await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
                     console.log('✅ Remote description 설정 완료');
@@ -60,6 +58,14 @@ const ScreenShare = () => {
             }
         });
 
+        socket.on('connect', () => {
+            console.log('🔗 WebSocket 연결됨');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('❌ WebSocket 연결 종료됨');
+        });
+
         return () => {
             socket.off('offer');
             socket.off('answer');
@@ -74,7 +80,8 @@ const ScreenShare = () => {
 
         peer.onicecandidate = (event) => {
             if (event.candidate) {
-                socket.emit('candidate', event.candidate);
+                console.log('📡 ICE Candidate 생성:', event.candidate); // 로그 강화
+                socket.emit('candidate', event.candidate); // 후보 전송
             }
         };
 
