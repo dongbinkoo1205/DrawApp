@@ -59,25 +59,24 @@ const cors = require('cors');
 const app = express();
 const server = http.createServer(app);
 
-// ✅ CORS 설정 강화
+// ✅ CORS 설정 - Render에서 올바르게 WebSocket 요청을 허용
 app.use(
     cors({
-        origin: ['https://drawapp-five.vercel.app'], // Vercel 프론트엔드 도메인
+        origin: ['https://drawapp-five.vercel.app'], // Vercel 프론트엔드 주소
         methods: ['GET', 'POST'],
-        allowedHeaders: ['Content-Type'],
         credentials: true,
     })
 );
 
-// ✅ WebSocket 설정 (CORS 허용)
 const io = new Server(server, {
     cors: {
-        origin: 'https://drawapp-five.vercel.app', // Vercel 프론트엔드 허용
+        origin: 'https://drawapp-five.vercel.app', // ✅ WebSocket 요청 허용
         methods: ['GET', 'POST'],
     },
     transports: ['websocket', 'polling'], // ✅ WebSocket & Polling 허용
-    pingInterval: 25000, // 연결 유지 설정 (25초마다 Ping)
-    pingTimeout: 60000, // 60초 이상 응답 없으면 연결 종료
+    allowEIO3: true, // ✅ 일부 브라우저에서 WebSocket이 차단되지 않도록 설정
+    pingInterval: 25000, // ✅ 연결 유지 (25초마다 Ping)
+    pingTimeout: 60000, // ✅ 60초 이상 응답 없으면 연결 종료
 });
 
 let screenSharer = null; // 현재 화면 공유 중인 사용자 ID
@@ -85,7 +84,7 @@ let screenSharer = null; // 현재 화면 공유 중인 사용자 ID
 io.on('connection', (socket) => {
     console.log('✅ 클라이언트 연결됨:', socket.id);
 
-    // 현재 화면 공유 상태를 클라이언트에 전달
+    // ✅ 현재 화면 공유 상태 전송
     socket.emit('screen-sharing-status', screenSharer !== null);
 
     socket.on('start-screen-share', () => {
@@ -114,7 +113,7 @@ io.on('connection', (socket) => {
     });
 });
 
-// ✅ Render 서버에서는 8080 포트를 사용해야 함
+// ✅ Render에서는 8080 포트를 사용해야 함
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
     console.log(`✅ 서버가 http://localhost:${PORT}에서 실행 중입니다.`);

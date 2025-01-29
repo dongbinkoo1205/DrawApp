@@ -196,12 +196,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 
-// ✅ WebSocket 설정 변경
+// ✅ WebSocket & Polling 허용
 const socket = io('https://drawapp-ne15.onrender.com', {
     transports: ['websocket', 'polling'], // ✅ WebSocket & Polling 허용
     reconnection: true, // 자동 재연결
     reconnectionAttempts: 10,
     reconnectionDelay: 2000,
+    secure: true,
 });
 
 const ScreenShare = () => {
@@ -210,7 +211,6 @@ const ScreenShare = () => {
     const [isAnotherUserSharing, setIsAnotherUserSharing] = useState(false);
 
     useEffect(() => {
-        // ✅ 현재 화면 공유 상태를 서버에서 받아오기
         socket.on('screen-sharing-status', (status) => {
             setIsAnotherUserSharing(status);
         });
@@ -220,7 +220,6 @@ const ScreenShare = () => {
         };
     }, []);
 
-    // ✅ 화면 공유 시작
     const startScreenShare = async () => {
         try {
             const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
@@ -240,7 +239,6 @@ const ScreenShare = () => {
         }
     };
 
-    // ✅ 화면 공유 중지
     const stopScreenShare = () => {
         if (videoRef.current && videoRef.current.srcObject) {
             videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
