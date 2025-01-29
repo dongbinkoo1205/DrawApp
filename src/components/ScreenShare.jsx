@@ -222,23 +222,25 @@ const ScreenShare = () => {
             setShareBlocked(true);
         });
 
-        // ✅ Offer 수신 시 PeerConnection 생성
+        // ✅ Offer 수신 시 PeerConnection을 먼저 생성 후 설정
         socket.on('offer', async (data) => {
-            peerConnection.current = new RTCPeerConnection({
-                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-            });
+            if (!peerConnection.current) {
+                peerConnection.current = new RTCPeerConnection({
+                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+                });
 
-            peerConnection.current.onicecandidate = (event) => {
-                if (event.candidate) {
-                    socket.emit('ice-candidate', event.candidate);
-                }
-            };
+                peerConnection.current.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        socket.emit('ice-candidate', event.candidate);
+                    }
+                };
 
-            peerConnection.current.ontrack = (event) => {
-                if (remoteVideoRef.current) {
-                    remoteVideoRef.current.srcObject = event.streams[0];
-                }
-            };
+                peerConnection.current.ontrack = (event) => {
+                    if (remoteVideoRef.current) {
+                        remoteVideoRef.current.srcObject = event.streams[0];
+                    }
+                };
+            }
 
             await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data));
             const answer = await peerConnection.current.createAnswer();

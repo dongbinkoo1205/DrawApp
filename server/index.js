@@ -82,9 +82,31 @@ io.on('connection', (socket) => {
     // 현재 화면 공유 상태 전송
     socket.emit('screen-sharing-status', screenSharer !== null);
 
+    // ✅ 사용자가 화면 공유를 시작하려 할 때
+    socket.on('start-screen-share', () => {
+        if (!screenSharer) {
+            screenSharer = socket.id;
+            io.emit('screen-sharing-status', true);
+            console.log(`📺 화면 공유 시작: ${socket.id}`);
+        } else {
+            socket.emit('screen-share-denied', '다른 사용자가 이미 화면을 공유 중입니다.');
+        }
+    });
+
+    // ✅ 사용자가 화면 공유를 중지할 때
+    socket.on('stop-screen-share', () => {
+        if (screenSharer === socket.id) {
+            screenSharer = null;
+            io.emit('screen-sharing-status', false);
+            console.log(`❌ 화면 공유 종료: ${socket.id}`);
+        }
+    });
+
     // ✅ WebRTC Offer, Answer, ICE Candidate 전송
     socket.on('offer', (data) => {
-        socket.broadcast.emit('offer', data);
+        if (screenSharer) {
+            socket.broadcast.emit('offer', data);
+        }
     });
 
     socket.on('answer', (data) => {
@@ -93,22 +115,6 @@ io.on('connection', (socket) => {
 
     socket.on('ice-candidate', (data) => {
         socket.broadcast.emit('ice-candidate', data);
-    });
-
-    socket.on('start-screen-share', () => {
-        if (!screenSharer) {
-            screenSharer = socket.id;
-            io.emit('screen-sharing-status', true);
-            console.log(`📺 화면 공유 시작: ${socket.id}`);
-        }
-    });
-
-    socket.on('stop-screen-share', () => {
-        if (screenSharer === socket.id) {
-            screenSharer = null;
-            io.emit('screen-sharing-status', false);
-            console.log(`❌ 화면 공유 종료: ${socket.id}`);
-        }
     });
 
     socket.on('disconnect', () => {
