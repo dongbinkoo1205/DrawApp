@@ -8,12 +8,20 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: '*', // 🔹 모든 도메인 허용
+        origin: '*', // 🔹 모든 도메인에서 접근 허용 (보안이 필요하면 특정 도메인만 허용)
         methods: ['GET', 'POST'],
+        credentials: true,
+        transports: ['websocket', 'polling'], // 🔹 WebSocket을 우선적으로 사용
     },
 });
 
-app.use(cors());
+app.use(
+    cors({
+        origin: '*',
+        methods: ['GET', 'POST'],
+        credentials: true,
+    })
+);
 
 // WebRTC & 채팅 이벤트 처리
 io.on('connection', (socket) => {
