@@ -1,13 +1,13 @@
 import React from 'react';
 import ScreenShare from './components/ScreenShare';
-import DrawingCanvas from './components/DrawingCanvas';
+import Canvas from './components/Canvas';
 import Chat from './components/Chat';
 
 const App = () => {
     return (
         <div>
             <ScreenShare />
-            <DrawingCanvas />
+            <Canvas />
             <Chat />
         </div>
     );
