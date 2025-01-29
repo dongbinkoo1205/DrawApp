@@ -47,14 +47,22 @@ const ScreenShare = () => {
         });
 
         socket.on('candidate', async (candidate) => {
-            console.log('📡 ICE Candidate 수신');
-            if (peerRef.current) {
-                try {
-                    await peerRef.current.addIceCandidate(new RTCIceCandidate(candidate));
-                    console.log('✅ ICE Candidate 추가 완료');
-                } catch (err) {
-                    console.error('ICE Candidate 처리 실패:', err);
-                }
+            console.log('📡 ICE Candidate 수신:', candidate);
+
+            if (!peerRef.current) {
+                console.error('❌ peerRef.current가 존재하지 않습니다.');
+                return; // peerRef가 없으면 진행하지 않음
+            }
+
+            try {
+                // RTCIceCandidate가 올바르게 생성되었는지 확인
+                const iceCandidate = new RTCIceCandidate(candidate);
+
+                // ICE 후보를 추가
+                await peerRef.current.addIceCandidate(iceCandidate);
+                console.log('✅ ICE Candidate 추가 완료');
+            } catch (err) {
+                console.error('ICE Candidate 처리 실패:', err);
             }
         });
 
