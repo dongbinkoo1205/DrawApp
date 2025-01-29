@@ -1,14 +1,16 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Home from './components/Home';
-import Session from './components/Session';
+import React from 'react';
+import ScreenShare from './components/ScreenShare';
+import DrawingCanvas from './components/DrawingCanvas';
+import Chat from './components/Chat';
 
-function App() {
+const App = () => {
     return (
-        <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/Session/:sessionId" element={<Session />} />
-        </Routes>
+        <div>
+            <ScreenShare />
+            <DrawingCanvas />
+            <Chat />
+        </div>
     );
-}
+};
 
 export default App;
