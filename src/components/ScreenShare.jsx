@@ -205,59 +205,93 @@ const socket = io('https://drawapp-ne15.onrender.com', {
 });
 
 const ScreenShare = () => {
-    const videoRef = useRef(null);
-    const canvasRef = useRef(null);
+    const localVideoRef = useRef(null);
+    const remoteVideoRef = useRef(null);
     const [isScreenSharing, setIsScreenSharing] = useState(false);
     const [isAnotherUserSharing, setIsAnotherUserSharing] = useState(false);
-    let captureInterval = useRef(null);
+    const peerConnection = useRef(null);
 
     useEffect(() => {
         socket.on('screen-sharing-status', (status) => {
             setIsAnotherUserSharing(status);
         });
 
-        // ✅ 서버에서 비디오 프레임 수신 후 캔버스에 그림
-        socket.on('video-frame', (frame) => {
-            const canvas = canvasRef.current;
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-                const img = new Image();
-                img.onload = () => {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                };
-                img.src = frame;
+        // ✅ Offer 수신 시 PeerConnection 생성
+        socket.on('offer', async (data) => {
+            peerConnection.current = new RTCPeerConnection({
+                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+            });
+
+            peerConnection.current.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('ice-candidate', event.candidate);
+                }
+            };
+
+            peerConnection.current.ontrack = (event) => {
+                if (remoteVideoRef.current) {
+                    remoteVideoRef.current.srcObject = event.streams[0];
+                }
+            };
+
+            await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data));
+            const answer = await peerConnection.current.createAnswer();
+            await peerConnection.current.setLocalDescription(answer);
+            socket.emit('answer', answer);
+        });
+
+        // ✅ Answer 수신
+        socket.on('answer', async (data) => {
+            if (peerConnection.current) {
+                await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data));
+            }
+        });
+
+        // ✅ ICE Candidate 수신
+        socket.on('ice-candidate', async (data) => {
+            if (peerConnection.current) {
+                await peerConnection.current.addIceCandidate(new RTCIceCandidate(data));
             }
         });
 
         return () => {
             socket.off('screen-sharing-status');
-            socket.off('video-frame');
+            socket.off('offer');
+            socket.off('answer');
+            socket.off('ice-candidate');
         };
     }, []);
 
-    // ✅ 화면 공유 시작
     const startScreenShare = async () => {
         try {
             const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
+            if (localVideoRef.current) {
+                localVideoRef.current.srcObject = stream;
             }
             setIsScreenSharing(true);
             socket.emit('start-screen-share');
 
-            // ✅ 화면을 주기적으로 캡처해서 서버로 전송
-            captureInterval.current = setInterval(() => {
-                if (videoRef.current) {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = videoRef.current.videoWidth;
-                    canvas.height = videoRef.current.videoHeight;
-                    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-                    const frame = canvas.toDataURL('image/webp'); // ✅ 비디오 프레임을 Base64로 인코딩
-                    socket.emit('video-frame', frame); // ✅ 서버로 전송
+            peerConnection.current = new RTCPeerConnection({
+                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+            });
+
+            stream.getTracks().forEach((track) => peerConnection.current.addTrack(track, stream));
+
+            peerConnection.current.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('ice-candidate', event.candidate);
                 }
-            }, 100); // ✅ 100ms마다 프레임 전송 (10fps)
+            };
+
+            peerConnection.current.ontrack = (event) => {
+                if (remoteVideoRef.current) {
+                    remoteVideoRef.current.srcObject = event.streams[0];
+                }
+            };
+
+            const offer = await peerConnection.current.createOffer();
+            await peerConnection.current.setLocalDescription(offer);
+            socket.emit('offer', offer);
 
             stream.getVideoTracks()[0].onended = () => {
                 stopScreenShare();
@@ -268,55 +302,23 @@ const ScreenShare = () => {
         }
     };
 
-    // ✅ 화면 공유 중지
-    const stopScreenShare = () => {
-        if (videoRef.current && videoRef.current.srcObject) {
-            videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
-        }
-        clearInterval(captureInterval.current);
-        setIsScreenSharing(false);
-        socket.emit('stop-screen-share');
-    };
-
     return (
         <div>
             <h2>화면 공유</h2>
-            <video ref={videoRef} autoPlay playsInline style={{ display: 'none' }} />
-            <canvas ref={canvasRef} style={{ width: '100%', height: '70vh', background: '#000' }} />
+            <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                style={{ width: '100%', height: '50vh', background: '#000' }}
+            />
+            <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                style={{ width: '100%', height: '50vh', background: '#000' }}
+            />
 
-            {!isAnotherUserSharing && !isScreenSharing && (
-                <button
-                    onClick={startScreenShare}
-                    style={{
-                        marginTop: '10px',
-                        padding: '10px 15px',
-                        background: 'blue',
-                        color: 'white',
-                        border: 'none',
-                    }}
-                >
-                    화면 공유하기
-                </button>
-            )}
-
-            {isScreenSharing && (
-                <button
-                    onClick={stopScreenShare}
-                    style={{
-                        marginTop: '10px',
-                        padding: '10px 15px',
-                        background: 'red',
-                        color: 'white',
-                        border: 'none',
-                    }}
-                >
-                    화면 공유 중지
-                </button>
-            )}
-
-            {isAnotherUserSharing && !isScreenSharing && (
-                <p style={{ color: 'red', fontWeight: 'bold' }}>🚀 다른 사용자가 화면을 공유 중입니다.</p>
-            )}
+            <button onClick={startScreenShare}>화면 공유하기</button>
         </div>
     );
 };

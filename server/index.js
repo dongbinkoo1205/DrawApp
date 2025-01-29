@@ -59,10 +59,9 @@ const cors = require('cors');
 const app = express();
 const server = http.createServer(app);
 
-// ✅ CORS 설정
 app.use(
     cors({
-        origin: ['https://drawapp-five.vercel.app'], // Vercel 프론트엔드 허용
+        origin: ['https://drawapp-five.vercel.app'],
         methods: ['GET', 'POST'],
         credentials: true,
     })
@@ -83,7 +82,19 @@ io.on('connection', (socket) => {
     // 현재 화면 공유 상태 전송
     socket.emit('screen-sharing-status', screenSharer !== null);
 
-    // ✅ 클라이언트가 화면 공유 시작
+    // ✅ WebRTC Offer, Answer, ICE Candidate 전송
+    socket.on('offer', (data) => {
+        socket.broadcast.emit('offer', data);
+    });
+
+    socket.on('answer', (data) => {
+        socket.broadcast.emit('answer', data);
+    });
+
+    socket.on('ice-candidate', (data) => {
+        socket.broadcast.emit('ice-candidate', data);
+    });
+
     socket.on('start-screen-share', () => {
         if (!screenSharer) {
             screenSharer = socket.id;
@@ -92,18 +103,12 @@ io.on('connection', (socket) => {
         }
     });
 
-    // ✅ 클라이언트가 화면 공유 중지
     socket.on('stop-screen-share', () => {
         if (screenSharer === socket.id) {
             screenSharer = null;
             io.emit('screen-sharing-status', false);
             console.log(`❌ 화면 공유 종료: ${socket.id}`);
         }
-    });
-
-    // ✅ 비디오 프레임을 다른 클라이언트에게 전달
-    socket.on('video-frame', (frame) => {
-        socket.broadcast.emit('video-frame', frame);
     });
 
     socket.on('disconnect', () => {
@@ -116,7 +121,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// ✅ 포트 8080에서 실행
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
     console.log(`✅ 서버가 http://localhost:${PORT}에서 실행 중입니다.`);
