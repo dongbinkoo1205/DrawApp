@@ -205,7 +205,7 @@ const socket = io('https://drawapp-ne15.onrender.com', {
 });
 
 const ScreenShare = () => {
-    const videoRef = useRef(null);
+    const localVideoRef = useRef(null);
     const remoteVideoRef = useRef(null);
     const [isScreenSharing, setIsScreenSharing] = useState(false);
     const [isAnotherUserSharing, setIsAnotherUserSharing] = useState(false);
@@ -216,6 +216,7 @@ const ScreenShare = () => {
             setIsAnotherUserSharing(status);
         });
 
+        // ✅ WebRTC Offer 수신
         socket.on('offer', async (data) => {
             if (!peerConnection.current) return;
             await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data));
@@ -224,11 +225,13 @@ const ScreenShare = () => {
             socket.emit('answer', answer);
         });
 
+        // ✅ WebRTC Answer 수신
         socket.on('answer', async (data) => {
             if (!peerConnection.current) return;
             await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data));
         });
 
+        // ✅ ICE Candidate 수신
         socket.on('ice-candidate', async (data) => {
             if (peerConnection.current) {
                 await peerConnection.current.addIceCandidate(new RTCIceCandidate(data));
@@ -246,13 +249,13 @@ const ScreenShare = () => {
     const startScreenShare = async () => {
         try {
             const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
+            if (localVideoRef.current) {
+                localVideoRef.current.srcObject = stream;
             }
             setIsScreenSharing(true);
             socket.emit('start-screen-share');
 
-            // WebRTC P2P 연결 설정
+            // ✅ WebRTC 연결 설정
             peerConnection.current = new RTCPeerConnection({
                 iceServers: [{ urls: 'stun:stun.l.google.com:19302' }], // ✅ STUN 서버 추가
             });
@@ -285,8 +288,8 @@ const ScreenShare = () => {
     };
 
     const stopScreenShare = () => {
-        if (videoRef.current && videoRef.current.srcObject) {
-            videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+        if (localVideoRef.current && localVideoRef.current.srcObject) {
+            localVideoRef.current.srcObject.getTracks().forEach((track) => track.stop());
         }
         setIsScreenSharing(false);
         socket.emit('stop-screen-share');
@@ -295,7 +298,12 @@ const ScreenShare = () => {
     return (
         <div>
             <h2>화면 공유</h2>
-            <video ref={videoRef} autoPlay playsInline style={{ width: '100%', height: '50vh', background: '#000' }} />
+            <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                style={{ width: '100%', height: '50vh', background: '#000' }}
+            />
             <video
                 ref={remoteVideoRef}
                 autoPlay

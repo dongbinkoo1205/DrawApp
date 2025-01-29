@@ -59,7 +59,6 @@ const cors = require('cors');
 const app = express();
 const server = http.createServer(app);
 
-// ✅ CORS 설정
 app.use(
     cors({
         origin: ['https://drawapp-five.vercel.app'],
@@ -83,7 +82,7 @@ io.on('connection', (socket) => {
     // 현재 화면 공유 상태 전송
     socket.emit('screen-sharing-status', screenSharer !== null);
 
-    // WebRTC 시그널링 (Offer/Answer/ICE Candidate 전송)
+    // ✅ WebRTC Offer, Answer, ICE Candidate 전송
     socket.on('offer', (data) => {
         socket.broadcast.emit('offer', data);
     });
