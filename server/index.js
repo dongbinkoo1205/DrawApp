@@ -6,10 +6,9 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-
 const io = new Server(server, {
     cors: {
-        origin: '*',
+        origin: '*', // 모든 출처 허용
         methods: ['GET', 'POST'],
         transports: ['websocket', 'polling'],
     },

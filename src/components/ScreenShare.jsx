@@ -16,31 +16,47 @@ const ScreenShare = () => {
             }
 
             try {
-                if (peerRef.current.signalingState !== 'stable') {
-                    console.log('Signaling state is not stable, waiting...');
-                    return;
-                }
+                await waitForStableState(peerRef.current);
 
                 await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
+                console.log('✅ Remote description 설정 완료');
+
                 const answer = await peerRef.current.createAnswer();
                 await peerRef.current.setLocalDescription(answer);
-                socket.emit('answer', answer); // 서버에 answer 전송
+                console.log('✅ Local description 설정 완료');
+
+                socket.emit('answer', answer);
             } catch (err) {
                 console.error('Offer 처리 실패:', err);
             }
         });
 
-        socket.on('answer', (answer) => {
+        socket.on('answer', async (answer) => {
             console.log('📡 WebRTC Answer 수신');
             if (peerRef.current) {
-                peerRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+                try {
+                    if (peerRef.current.signalingState === 'stable') {
+                        console.warn('🔍 Answer를 설정할 필요가 없음');
+                        return;
+                    }
+
+                    await peerRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+                    console.log('✅ Remote answer 설정 완료');
+                } catch (err) {
+                    console.error('Answer 처리 실패:', err);
+                }
             }
         });
 
-        socket.on('candidate', (candidate) => {
+        socket.on('candidate', async (candidate) => {
             console.log('📡 ICE Candidate 수신');
             if (peerRef.current) {
-                peerRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+                try {
+                    await peerRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+                    console.log('✅ ICE Candidate 추가 완료');
+                } catch (err) {
+                    console.error('ICE Candidate 처리 실패:', err);
+                }
             }
         });
 
@@ -75,13 +91,31 @@ const ScreenShare = () => {
                 peer.addTrack(track, mediaStream.current);
             });
 
-            peer.createOffer().then((offer) => {
-                peer.setLocalDescription(offer);
-                socket.emit('offer', offer); // 서버에 offer 전송
-            });
+            peer.createOffer()
+                .then((offer) => {
+                    return peer.setLocalDescription(offer);
+                })
+                .then(() => {
+                    console.log('📡 Offer 전송');
+                    socket.emit('offer', peer.localDescription);
+                })
+                .catch((err) => console.error('Offer 생성 실패:', err));
         }
 
         return peer;
+    };
+
+    const waitForStableState = async (peer) => {
+        let retries = 0;
+        while (peer.signalingState !== 'stable' && retries < 5) {
+            console.log(`⏳ Waiting for stable state... [${retries + 1}/5]`);
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            retries++;
+        }
+
+        if (peer.signalingState !== 'stable') {
+            throw new Error('PeerConnection 상태가 안정적이지 않음 (stable 상태 대기 실패)');
+        }
     };
 
     const startScreenShare = async () => {
@@ -101,11 +135,7 @@ const ScreenShare = () => {
 
             stream.getVideoTracks()[0].onended = () => stopScreenShare();
         } catch (err) {
-            if (err.name === 'NotAllowedError') {
-                console.error('❌ 화면 공유 권한이 거부되었습니다. 권한을 부여해 주세요.');
-            } else {
-                console.error('❌ 화면 공유 오류:', err);
-            }
+            console.error('❌ 화면 공유 오류:', err);
         }
     };
 
