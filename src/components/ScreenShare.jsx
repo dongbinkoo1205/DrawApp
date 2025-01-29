@@ -8,6 +8,7 @@ const ScreenShare = () => {
     const mediaStream = useRef(null);
 
     useEffect(() => {
+        // WebRTC 시그널링 처리
         socket.on('offer', async (offer) => {
             console.log('📡 WebRTC Offer 수신');
             if (!peerRef.current) {

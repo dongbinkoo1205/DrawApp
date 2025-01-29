@@ -11,7 +11,7 @@ export default defineConfig({
     build: {
         outDir: 'dist',
         rollupOptions: {
-            input: 'index.html', // 🔹 번들링 시 진입점을 명확히 지정
+            input: 'index.html',
         },
     },
     define: {
@@ -20,6 +20,7 @@ export default defineConfig({
     server: {
         port: 5173,
         strictPort: true,
+        https: true, // HTTPS 환경에서 실행
     },
     base: '/',
 });
