@@ -52,14 +52,14 @@ const ScreenShare = () => {
         };
 
         peer.ontrack = (event) => {
-            console.log('🎥 수신된 비디오 스트림 설정');
+            console.log('🎥 비디오 트랙 수신');
             if (videoRef.current) {
                 videoRef.current.srcObject = event.streams[0];
             }
         };
 
         if (initiator) {
-            console.log('🎥 공유된 화면 트랙 추가');
+            console.log('🎥 화면 공유 트랙 추가');
             mediaStream.current.getTracks().forEach((track) => {
                 peer.addTrack(track, mediaStream.current);
             });
