@@ -51,6 +51,7 @@
 // server.listen(PORT, () => {
 //     console.log(`🚀 서버 실행 중: 포트 ${PORT}`);
 // });
+
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -59,18 +60,20 @@ const cors = require('cors');
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors({
-    origin: ['https://drawapp-five.vercel.app'], // 프론트엔드 주소 허용
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type'],
-    credentials: true
-}));
+app.use(
+    cors({
+        origin: ['https://drawapp-five.vercel.app'], // 프론트엔드 주소 허용
+        methods: ['GET', 'POST'],
+        allowedHeaders: ['Content-Type'],
+        credentials: true,
+    })
+);
 
 const io = new Server(server, {
     cors: {
         origin: 'https://drawapp-five.vercel.app', // ✅ Vercel 프론트엔드 허용
-        methods: ['GET', 'POST']
-    }
+        methods: ['GET', 'POST'],
+    },
 });
 
 let screenSharer = null; // 현재 화면 공유 중인 사용자 ID
@@ -110,3 +113,4 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
     console.log(`✅ 서버가 http://localhost:${PORT}에서 실행 중입니다.`);
+});
