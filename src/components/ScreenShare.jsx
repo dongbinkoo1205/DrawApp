@@ -8,6 +8,7 @@ const ScreenShare = () => {
     const mediaStream = useRef(null);
 
     useEffect(() => {
+        // WebRTC 시그널링 처리
         socket.on('offer', async (offer) => {
             console.log('📡 WebRTC Offer 수신');
             if (!peerRef.current) {
@@ -15,16 +16,21 @@ const ScreenShare = () => {
             }
 
             try {
-                // "stable" 상태 확인 후 설정
                 await waitForStableState(peerRef.current);
-                await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
-                console.log('✅ Remote description 설정 완료');
 
-                const answer = await peerRef.current.createAnswer();
-                await peerRef.current.setLocalDescription(answer);
-                console.log('✅ Local description 설정 완료');
+                // "stable" 상태 확인 후 설정
+                if (peerRef.current.signalingState === 'stable') {
+                    await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
+                    console.log('✅ Remote description 설정 완료');
 
-                socket.emit('answer', answer); // 서버로 answer 전송
+                    const answer = await peerRef.current.createAnswer();
+                    await peerRef.current.setLocalDescription(answer);
+                    console.log('✅ Local description 설정 완료');
+
+                    socket.emit('answer', answer); // 서버로 answer 전송
+                } else {
+                    console.log('❌ signalingState가 stable 상태가 아니므로 처리하지 않음');
+                }
             } catch (err) {
                 console.error('Offer 처리 실패:', err);
             }
@@ -75,7 +81,7 @@ const ScreenShare = () => {
         peer.ontrack = (event) => {
             console.log('🎥 비디오 트랙 수신:', event);
             if (videoRef.current) {
-                videoRef.current.srcObject = event.streams[0]; // 비디오 스트림 설정
+                videoRef.current.srcObject = event.streams[0];
                 console.log('🎥 비디오 스트림 설정 완료');
             }
         };
@@ -115,6 +121,11 @@ const ScreenShare = () => {
     };
 
     const startScreenShare = async () => {
+        if (isSharing) {
+            console.log('❌ 화면 공유 중복 시작 방지');
+            return; // 이미 화면 공유 중이면 다시 시작하지 않음
+        }
+
         try {
             console.log('🎥 화면 공유 시작');
             const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
@@ -136,12 +147,17 @@ const ScreenShare = () => {
     };
 
     const stopScreenShare = () => {
+        if (!isSharing) {
+            console.log('❌ 화면 공유가 진행 중이 아닙니다.');
+            return;
+        }
+
         console.log('🛑 화면 공유 중지');
         if (mediaStream.current) {
             mediaStream.current.getTracks().forEach((track) => track.stop());
             setIsSharing(false);
             socket.emit('stopScreenShare');
-            console.log('🎥 화면 공유 중지 완료');
+            console.log('🎥 화면 공유 트랙 종료됨');
         }
     };
 
