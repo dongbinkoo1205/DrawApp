@@ -8,6 +8,7 @@ const ScreenShare = () => {
     const mediaStream = useRef(null);
 
     useEffect(() => {
+        // WebRTC 시그널링 처리
         socket.on('offer', async (offer) => {
             console.log('📡 WebRTC Offer 수신');
             if (!peerRef.current) {
@@ -15,9 +16,10 @@ const ScreenShare = () => {
             }
 
             try {
+                // signalingState가 "stable"이 아닐 때 기다리기
                 if (peerRef.current.signalingState !== 'stable') {
                     console.log('Signaling state is not stable, waiting...');
-                    return;
+                    return; // "stable" 상태일 때만 진행
                 }
 
                 await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
@@ -102,6 +104,8 @@ const ScreenShare = () => {
         } catch (err) {
             if (err.name === 'NotAllowedError') {
                 console.error('❌ 화면 공유 권한이 거부되었습니다. 권한을 부여해 주세요.');
+            } else if (err.name === 'NotFoundError') {
+                console.error('❌ 화면을 찾을 수 없습니다. 다른 화면 공유 방법을 사용해 주세요.');
             } else {
                 console.error('❌ 화면 공유 오류:', err);
             }
