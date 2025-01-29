@@ -18,6 +18,7 @@ const ScreenShare = () => {
             try {
                 // "stable" 상태 확인 후 설정
                 await waitForStableState(peerRef.current);
+
                 await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
                 console.log('✅ Remote description 설정 완료');
 
