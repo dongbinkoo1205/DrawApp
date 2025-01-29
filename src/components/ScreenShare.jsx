@@ -14,17 +14,17 @@ const ScreenShare = () => {
             if (!peerRef.current) {
                 peerRef.current = createPeer(false);
             }
+
             try {
-                // "stable" 상태인지 체크
                 if (peerRef.current.signalingState !== 'stable') {
                     console.log('Signaling state is not stable, waiting...');
-                    return; // 상태가 "stable"이 아니면 기다리기
+                    return;
                 }
 
                 await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
                 const answer = await peerRef.current.createAnswer();
                 await peerRef.current.setLocalDescription(answer);
-                socket.emit('answer', answer);
+                socket.emit('answer', answer); // 서버에 answer 전송
             } catch (err) {
                 console.error('Offer 처리 실패:', err);
             }
@@ -77,7 +77,7 @@ const ScreenShare = () => {
 
             peer.createOffer().then((offer) => {
                 peer.setLocalDescription(offer);
-                socket.emit('offer', offer);
+                socket.emit('offer', offer); // 서버에 offer 전송
             });
         }
 
@@ -101,7 +101,11 @@ const ScreenShare = () => {
 
             stream.getVideoTracks()[0].onended = () => stopScreenShare();
         } catch (err) {
-            console.error('❌ 화면 공유 오류:', err);
+            if (err.name === 'NotAllowedError') {
+                console.error('❌ 화면 공유 권한이 거부되었습니다. 권한을 부여해 주세요.');
+            } else {
+                console.error('❌ 화면 공유 오류:', err);
+            }
         }
     };
 
