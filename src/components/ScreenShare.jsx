@@ -81,7 +81,11 @@ const ScreenShare = () => {
         peer.onicecandidate = (event) => {
             if (event.candidate) {
                 console.log('📡 ICE Candidate 생성:', event.candidate); // 로그 강화
-                socket.emit('candidate', event.candidate); // 후보 전송
+                try {
+                    socket.emit('candidate', event.candidate); // 후보 전송
+                } catch (error) {
+                    console.error('ICE Candidate 전송 오류:', error);
+                }
             }
         };
 
