@@ -20,7 +20,6 @@ export default defineConfig({
     server: {
         port: 5173,
         strictPort: true,
-        https: true, // HTTPS 환경에서 실행
     },
     base: '/',
 });
