@@ -209,7 +209,6 @@ const ScreenShare = () => {
     const remoteVideoRef = useRef(null);
     const [isScreenSharing, setIsScreenSharing] = useState(false);
     const [isAnotherUserSharing, setIsAnotherUserSharing] = useState(false);
-    const [shareBlocked, setShareBlocked] = useState(false);
     const peerConnection = useRef(null);
 
     useEffect(() => {
@@ -219,28 +218,29 @@ const ScreenShare = () => {
 
         socket.on('screen-share-denied', (message) => {
             alert(message);
-            setShareBlocked(true);
         });
 
-        // ✅ Offer 수신 시 PeerConnection을 먼저 생성 후 설정
+        // ✅ PeerConnection 초기화 (Offer 수신 전 미리 설정)
+        function initializePeerConnection() {
+            peerConnection.current = new RTCPeerConnection({
+                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+            });
+
+            peerConnection.current.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('ice-candidate', event.candidate);
+                }
+            };
+
+            peerConnection.current.ontrack = (event) => {
+                if (remoteVideoRef.current) {
+                    remoteVideoRef.current.srcObject = event.streams[0];
+                }
+            };
+        }
+
         socket.on('offer', async (data) => {
-            if (!peerConnection.current) {
-                peerConnection.current = new RTCPeerConnection({
-                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-                });
-
-                peerConnection.current.onicecandidate = (event) => {
-                    if (event.candidate) {
-                        socket.emit('ice-candidate', event.candidate);
-                    }
-                };
-
-                peerConnection.current.ontrack = (event) => {
-                    if (remoteVideoRef.current) {
-                        remoteVideoRef.current.srcObject = event.streams[0];
-                    }
-                };
-            }
+            if (!peerConnection.current) initializePeerConnection();
 
             await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data));
             const answer = await peerConnection.current.createAnswer();
@@ -248,14 +248,12 @@ const ScreenShare = () => {
             socket.emit('answer', answer);
         });
 
-        // ✅ Answer 수신
         socket.on('answer', async (data) => {
             if (peerConnection.current) {
                 await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data));
             }
         });
 
-        // ✅ ICE Candidate 수신
         socket.on('ice-candidate', async (data) => {
             if (peerConnection.current) {
                 await peerConnection.current.addIceCandidate(new RTCIceCandidate(data));
@@ -272,8 +270,6 @@ const ScreenShare = () => {
 
     const startScreenShare = async () => {
         try {
-            if (shareBlocked) return;
-
             const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
             if (localVideoRef.current) {
                 localVideoRef.current.srcObject = stream;

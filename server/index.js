@@ -82,7 +82,6 @@ io.on('connection', (socket) => {
     // 현재 화면 공유 상태 전송
     socket.emit('screen-sharing-status', screenSharer !== null);
 
-    // ✅ 사용자가 화면 공유를 시작하려 할 때
     socket.on('start-screen-share', () => {
         if (!screenSharer) {
             screenSharer = socket.id;
@@ -93,7 +92,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // ✅ 사용자가 화면 공유를 중지할 때
     socket.on('stop-screen-share', () => {
         if (screenSharer === socket.id) {
             screenSharer = null;
@@ -102,11 +100,8 @@ io.on('connection', (socket) => {
         }
     });
 
-    // ✅ WebRTC Offer, Answer, ICE Candidate 전송
     socket.on('offer', (data) => {
-        if (screenSharer) {
-            socket.broadcast.emit('offer', data);
-        }
+        socket.broadcast.emit('offer', data);
     });
 
     socket.on('answer', (data) => {
