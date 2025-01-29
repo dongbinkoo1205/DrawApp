@@ -8,23 +8,26 @@ const ScreenShare = () => {
     const mediaStream = useRef(null);
 
     useEffect(() => {
-        socket.on('offer', async ({ offer }) => {
+        socket.on('offer', async (offer) => {
             if (!peerRef.current) {
-                const peer = createPeer(false);
-                peerRef.current = peer;
+                peerRef.current = createPeer(false);
             }
             await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
             const answer = await peerRef.current.createAnswer();
             await peerRef.current.setLocalDescription(answer);
-            socket.emit('answer', { answer });
+            socket.emit('answer', answer);
         });
 
-        socket.on('answer', ({ answer }) => {
-            peerRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+        socket.on('answer', (answer) => {
+            if (peerRef.current) {
+                peerRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+            }
         });
 
-        socket.on('candidate', ({ candidate }) => {
-            peerRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+        socket.on('candidate', (candidate) => {
+            if (peerRef.current) {
+                peerRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+            }
         });
 
         return () => {
@@ -41,7 +44,7 @@ const ScreenShare = () => {
 
         peer.onicecandidate = (event) => {
             if (event.candidate) {
-                socket.emit('candidate', { candidate: event.candidate });
+                socket.emit('candidate', event.candidate);
             }
         };
 
@@ -58,7 +61,7 @@ const ScreenShare = () => {
 
             peer.createOffer().then((offer) => {
                 peer.setLocalDescription(offer);
-                socket.emit('offer', { offer });
+                socket.emit('offer', offer);
             });
         }
 
@@ -72,8 +75,7 @@ const ScreenShare = () => {
             setIsSharing(true);
 
             if (!peerRef.current) {
-                const peer = createPeer(true);
-                peerRef.current = peer;
+                peerRef.current = createPeer(true);
             }
 
             stream.getVideoTracks()[0].onended = () => stopScreenShare();
