@@ -8,7 +8,6 @@ const ScreenShare = () => {
     const mediaStream = useRef(null);
 
     useEffect(() => {
-        // WebRTC 시그널링 처리
         socket.on('offer', async (offer) => {
             console.log('📡 WebRTC Offer 수신');
             if (!peerRef.current) {
@@ -18,7 +17,6 @@ const ScreenShare = () => {
             try {
                 // "stable" 상태 확인 후 설정
                 await waitForStableState(peerRef.current);
-
                 await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
                 console.log('✅ Remote description 설정 완료');
 
@@ -55,13 +53,7 @@ const ScreenShare = () => {
                 }
             }
         });
-        socket.on('connect', () => {
-            console.log('🔗 WebSocket 연결됨');
-        });
 
-        socket.on('disconnect', () => {
-            console.log('❌ WebSocket 연결 종료됨');
-        });
         return () => {
             socket.off('offer');
             socket.off('answer');
@@ -73,6 +65,7 @@ const ScreenShare = () => {
         const peer = new RTCPeerConnection({
             iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
         });
+
         peer.onicecandidate = (event) => {
             if (event.candidate) {
                 socket.emit('candidate', event.candidate);
@@ -80,9 +73,9 @@ const ScreenShare = () => {
         };
 
         peer.ontrack = (event) => {
-            console.log('🎥 비디오 트랙 수신:', event); // 수신된 스트림을 로그로 확인
+            console.log('🎥 비디오 트랙 수신:', event);
             if (videoRef.current) {
-                videoRef.current.srcObject = event.streams[0]; // 스트림을 비디오에 설정
+                videoRef.current.srcObject = event.streams[0]; // 비디오 스트림 설정
                 console.log('🎥 비디오 스트림 설정 완료');
             }
         };
@@ -108,14 +101,14 @@ const ScreenShare = () => {
     const waitForStableState = async (peer) => {
         let retries = 0;
         while (peer.signalingState !== 'stable' && retries < 5) {
-            console.log(`⏳ Waiting for stable state... [${retries + 1}/5]`); // 상태 확인
+            console.log(`⏳ Waiting for stable state... [${retries + 1}/5]`);
             await new Promise((resolve) => setTimeout(resolve, 500));
             retries++;
         }
 
         if (peer.signalingState !== 'stable') {
             console.error('❌ PeerConnection 상태가 stable 상태로 변경되지 않았음');
-            throw new Error('PeerConnection 상태가 안정적이지 않음 (stable 상태 대기 실패)');
+            throw new Error('PeerConnection 상태가 안정적이지 않음');
         } else {
             console.log('✅ signalingState가 stable 상태로 변경됨');
         }
@@ -148,7 +141,7 @@ const ScreenShare = () => {
             mediaStream.current.getTracks().forEach((track) => track.stop());
             setIsSharing(false);
             socket.emit('stopScreenShare');
-            console.log('🎥 화면 공유 트랙 추가됨');
+            console.log('🎥 화면 공유 중지 완료');
         }
     };
 
