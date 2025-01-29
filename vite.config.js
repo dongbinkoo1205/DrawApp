@@ -3,22 +3,23 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
     plugins: [react()],
-    server: {
-        port: 5173,
-    },
-    build: {
-        outDir: 'dist',
-    },
-    preview: {
-        port: 4173,
-    },
     resolve: {
         alias: {
             '@': '/src',
         },
     },
-    base: '/',
-    esbuild: {
-        jsxInject: `import React from 'react'`,
+    build: {
+        outDir: 'dist',
+        rollupOptions: {
+            input: 'index.html', // 🔹 번들링 시 진입점을 명확히 지정
+        },
     },
+    define: {
+        'process.env': {},
+    },
+    server: {
+        port: 5173,
+        strictPort: true,
+    },
+    base: '/',
 });
