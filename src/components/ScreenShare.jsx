@@ -1,18 +1,80 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import socket from '../socket';
 
 const ScreenShare = () => {
     const [isSharing, setIsSharing] = useState(false);
     const videoRef = useRef(null);
+    const peerRef = useRef(null);
     const mediaStream = useRef(null);
+
+    useEffect(() => {
+        socket.on('offer', async ({ offer }) => {
+            if (!peerRef.current) {
+                const peer = createPeer(false);
+                peerRef.current = peer;
+            }
+            await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
+            const answer = await peerRef.current.createAnswer();
+            await peerRef.current.setLocalDescription(answer);
+            socket.emit('answer', { answer });
+        });
+
+        socket.on('answer', ({ answer }) => {
+            peerRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+        });
+
+        socket.on('candidate', ({ candidate }) => {
+            peerRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+        });
+
+        return () => {
+            socket.off('offer');
+            socket.off('answer');
+            socket.off('candidate');
+        };
+    }, []);
+
+    const createPeer = (initiator) => {
+        const peer = new RTCPeerConnection({
+            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+        });
+
+        peer.onicecandidate = (event) => {
+            if (event.candidate) {
+                socket.emit('candidate', { candidate: event.candidate });
+            }
+        };
+
+        peer.ontrack = (event) => {
+            if (videoRef.current) {
+                videoRef.current.srcObject = event.streams[0];
+            }
+        };
+
+        if (initiator) {
+            mediaStream.current.getTracks().forEach((track) => {
+                peer.addTrack(track, mediaStream.current);
+            });
+
+            peer.createOffer().then((offer) => {
+                peer.setLocalDescription(offer);
+                socket.emit('offer', { offer });
+            });
+        }
+
+        return peer;
+    };
 
     const startScreenShare = async () => {
         try {
             const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
             mediaStream.current = stream;
-            videoRef.current.srcObject = stream;
             setIsSharing(true);
-            socket.emit('startScreenShare');
+
+            if (!peerRef.current) {
+                const peer = createPeer(true);
+                peerRef.current = peer;
+            }
 
             stream.getVideoTracks()[0].onended = () => stopScreenShare();
         } catch (err) {

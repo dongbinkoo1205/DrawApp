@@ -7,6 +7,7 @@ const Chat = () => {
 
     useEffect(() => {
         socket.on('chatMessage', (message) => {
+            console.log('메시지 수신:', message); // 디버깅용 콘솔 로그
             setMessages((prev) => [...prev, message]);
         });
 
@@ -16,6 +17,7 @@ const Chat = () => {
     const sendMessage = () => {
         if (input.trim()) {
             socket.emit('chatMessage', input);
+            setMessages((prev) => [...prev, input]); // 🔹 내가 보낸 메시지를 즉시 상태에 추가
             setInput('');
         }
     };
