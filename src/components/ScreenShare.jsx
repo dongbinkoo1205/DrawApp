@@ -196,27 +196,49 @@
 import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 
-// ✅ WebSocket & Polling 허용
 const socket = io('https://drawapp-ne15.onrender.com', {
-    transports: ['websocket', 'polling'], // ✅ WebSocket & Polling 허용
-    reconnection: true, // 자동 재연결
+    transports: ['websocket', 'polling'],
+    reconnection: true,
     reconnectionAttempts: 10,
     reconnectionDelay: 2000,
-    secure: true,
 });
 
 const ScreenShare = () => {
     const videoRef = useRef(null);
+    const remoteVideoRef = useRef(null);
     const [isScreenSharing, setIsScreenSharing] = useState(false);
     const [isAnotherUserSharing, setIsAnotherUserSharing] = useState(false);
+    const peerConnection = useRef(null);
 
     useEffect(() => {
         socket.on('screen-sharing-status', (status) => {
             setIsAnotherUserSharing(status);
         });
 
+        socket.on('offer', async (data) => {
+            if (!peerConnection.current) return;
+            await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data));
+            const answer = await peerConnection.current.createAnswer();
+            await peerConnection.current.setLocalDescription(answer);
+            socket.emit('answer', answer);
+        });
+
+        socket.on('answer', async (data) => {
+            if (!peerConnection.current) return;
+            await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data));
+        });
+
+        socket.on('ice-candidate', (data) => {
+            if (peerConnection.current) {
+                peerConnection.current.addIceCandidate(new RTCIceCandidate(data));
+            }
+        });
+
         return () => {
             socket.off('screen-sharing-status');
+            socket.off('offer');
+            socket.off('answer');
+            socket.off('ice-candidate');
         };
     }, []);
 
@@ -229,13 +251,32 @@ const ScreenShare = () => {
             setIsScreenSharing(true);
             socket.emit('start-screen-share');
 
-            // 화면 공유 종료 시 서버에 알림
+            // WebRTC P2P 연결 설정
+            peerConnection.current = new RTCPeerConnection();
+            stream.getTracks().forEach((track) => peerConnection.current.addTrack(track, stream));
+
+            peerConnection.current.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('ice-candidate', event.candidate);
+                }
+            };
+
+            peerConnection.current.ontrack = (event) => {
+                if (remoteVideoRef.current) {
+                    remoteVideoRef.current.srcObject = event.streams[0];
+                }
+            };
+
+            const offer = await peerConnection.current.createOffer();
+            await peerConnection.current.setLocalDescription(offer);
+            socket.emit('offer', offer);
+
             stream.getVideoTracks()[0].onended = () => {
                 stopScreenShare();
             };
         } catch (error) {
             console.error('❌ 화면 공유 실패:', error);
-            alert('📌 화면 공유를 허용해야 합니다. HTTPS 환경에서 실행해주세요.');
+            alert('📌 화면 공유를 허용해야 합니다.');
         }
     };
 
@@ -251,6 +292,12 @@ const ScreenShare = () => {
         <div>
             <h2>화면 공유</h2>
             <video ref={videoRef} autoPlay playsInline style={{ width: '100%', height: '70vh', background: '#000' }} />
+            <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                style={{ width: '100%', height: '70vh', background: '#000' }}
+            />
 
             {!isAnotherUserSharing && !isScreenSharing && (
                 <button
