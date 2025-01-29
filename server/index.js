@@ -58,29 +58,39 @@ const cors = require('cors');
 
 const app = express();
 const server = http.createServer(app);
+
+// ✅ CORS 설정 추가
+app.use(
+    cors({
+        origin: ['https://drawapp-five.vercel.app'], // 프론트엔드 주소 허용
+        methods: ['GET', 'POST'],
+        allowedHeaders: ['Content-Type'],
+        credentials: true,
+    })
+);
+
 const io = new Server(server, {
     cors: {
-        origin: '*', // 모든 도메인에서 접근 허용
+        origin: 'https://drawapp-five.vercel.app', // ✅ Vercel 프론트엔드 허용
         methods: ['GET', 'POST'],
     },
 });
 
-app.use(cors()); // CORS 설정
-app.use(express.static('build')); // React 앱 빌드 폴더 제공
-
+// ✅ WebSocket 연결 로그 추가
 io.on('connection', (socket) => {
-    console.log('사용자 연결됨');
+    console.log('✅ 클라이언트가 WebSocket에 연결됨:', socket.id);
 
     socket.on('chat', (msg) => {
-        io.emit('chat', msg); // 모든 클라이언트에 메시지 전송
+        io.emit('chat', msg); // ✅ 모든 클라이언트에게 메시지 전송
     });
 
     socket.on('disconnect', () => {
-        console.log('사용자 연결 해제됨');
+        console.log('❌ 클라이언트 연결 해제됨:', socket.id);
     });
 });
 
-const PORT = process.env.PORT || 8080; // 3000 대신 8080 사용
+// ✅ 8080 포트로 변경 (Render에서 사용)
+const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
-    console.log(`서버가 http://localhost:${PORT}에서 실행 중입니다.`);
+    console.log(`✅ 서버가 http://localhost:${PORT}에서 실행 중입니다.`);
 });

@@ -199,7 +199,7 @@ const ScreenShare = () => {
     const videoRef = useRef(null);
 
     useEffect(() => {
-        // 화면 공유 시작
+        // ✅ 화면 공유 시작
         const startScreenShare = async () => {
             try {
                 const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
@@ -207,8 +207,8 @@ const ScreenShare = () => {
                     videoRef.current.srcObject = stream; // 화면 데이터를 video 요소에 연결
                 }
             } catch (error) {
-                console.error('화면 공유 실패:', error);
-                alert('화면 공유를 허용해야 합니다. HTTPS 환경에서 실행해주세요.');
+                console.error('❌ 화면 공유 실패:', error);
+                alert('📌 화면 공유를 허용해야 합니다. HTTPS 환경에서 실행해주세요.');
             }
         };
 

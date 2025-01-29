@@ -48,31 +48,30 @@
 
 // export default Chat;
 
-
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 
-const socket = io('https://drawapp-ne15.onrender.com');
+// ✅ WebSocket 서버 주소 변경
+const socket = io('https://drawapp-ne15.onrender.com', { transports: ['websocket'] });
 
 const Chat = () => {
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState('');
 
     useEffect(() => {
-        // 서버로부터 메시지를 수신
         socket.on('chat', (msg) => {
             setMessages((prevMessages) => [...prevMessages, msg]);
         });
 
         return () => {
-            socket.off('chat'); // 컴포넌트 언마운트 시 이벤트 리스너 제거
+            socket.off('chat'); // ✅ 컴포넌트 언마운트 시 WebSocket 리스너 제거
         };
     }, []);
 
     const sendMessage = () => {
         if (message.trim()) {
-            socket.emit('chat', message); // 서버로 메시지 전송
-            setMessage(''); // 입력창 초기화
+            socket.emit('chat', message);
+            setMessage('');
         }
     };
 
