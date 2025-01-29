@@ -51,15 +51,21 @@
 // server.listen(PORT, () => {
 //     console.log(`🚀 서버 실행 중: 포트 ${PORT}`);
 // });
-
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const cors = require('cors');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: '*', // 모든 도메인에서 접근 허용
+        methods: ['GET', 'POST'],
+    },
+});
 
+app.use(cors()); // CORS 설정
 app.use(express.static('build')); // React 앱 빌드 폴더 제공
 
 io.on('connection', (socket) => {
@@ -74,6 +80,7 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, () => {
-    console.log('서버가 3000번 포트에서 실행 중입니다.');
+const PORT = process.env.PORT || 8080; // 3000 대신 8080 사용
+server.listen(PORT, () => {
+    console.log(`서버가 http://localhost:${PORT}에서 실행 중입니다.`);
 });

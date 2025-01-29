@@ -193,7 +193,6 @@
 // };
 
 // export default ScreenShare;
-
 import React, { useEffect, useRef } from 'react';
 
 const ScreenShare = () => {
@@ -209,6 +208,7 @@ const ScreenShare = () => {
                 }
             } catch (error) {
                 console.error('화면 공유 실패:', error);
+                alert('화면 공유를 허용해야 합니다. HTTPS 환경에서 실행해주세요.');
             }
         };
 

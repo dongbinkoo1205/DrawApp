@@ -47,10 +47,12 @@
 // };
 
 // export default Chat;
+
+
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 
-const socket = io('http://localhost:3000'); // 서버 주소에 맞게 수정
+const socket = io('https://drawapp-ne15.onrender.com');
 
 const Chat = () => {
     const [messages, setMessages] = useState([]);
