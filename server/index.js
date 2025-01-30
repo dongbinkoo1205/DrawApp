@@ -24,63 +24,24 @@ let currentSharer = null; // 현재 화면 공유 중인 사용자 ID
 
 // ✅ 클라이언트 연결 시 이벤트 처리
 io.on('connection', (socket) => {
-    console.log('사용자 연결됨:', socket.id);
+    console.log(`[SERVER] 사용자 연결됨: ${socket.id}`);
 
-    // ✅ 새 클라이언트가 연결되면 현재 공유 상태 동기화
-    if (currentSharer) {
-        console.log(`현재 ${currentSharer}가 화면을 공유 중입니다.`);
-        socket.emit('sharing-started', { sharer: currentSharer });
-    }
+    let currentRoom = null;
 
-    // ✅ 화면 공유 시작 이벤트 처리
-    socket.on('start-sharing', () => {
-        if (currentSharer) {
-            console.log(`이미 ${currentSharer}가 화면을 공유 중입니다. ${socket.id} 요청 거부`);
-            socket.emit('sharing-denied', '다른 사용자가 이미 화면을 공유 중입니다.');
-        } else {
-            currentSharer = socket.id;
-            console.log(`${socket.id}가 화면 공유를 시작했습니다.`);
-            io.emit('sharing-started', { sharer: socket.id });
-        }
+    socket.on('join-room', (roomId) => {
+        currentRoom = roomId;
+        socket.join(roomId);
+        console.log(`[SERVER] ${socket.id}가 방 ${roomId}에 참여했습니다.`);
     });
 
-    // ✅ 화면 공유 중단 이벤트 처리
-    socket.on('stop-sharing', () => {
-        if (socket.id === currentSharer) {
-            console.log(`${socket.id}가 화면 공유를 중단했습니다.`);
-            currentSharer = null;
-            io.emit('sharing-stopped');
-        }
-    });
-
-    // ✅ 신호 데이터 전송 이벤트 처리
     socket.on('signal', (data) => {
-        console.log(`신호 데이터 수신 from ${socket.id} -> to ${data.to}`);
-
-        const targetSocket = io.sockets.sockets.get(data.to);
-        if (targetSocket) {
-            targetSocket.emit('signal', { from: socket.id, signal: data.signal });
-            console.log(`신호 데이터 전송 완료 to ${data.to}`);
-        } else {
-            console.warn(`타겟 소켓 ${data.to}가 존재하지 않습니다.`);
-        }
+        console.log(`[SERVER] 신호 데이터 수신 from ${socket.id} -> 방 ${currentRoom} 내 사용자 ${data.to}`);
+        io.to(data.to).emit('signal', { from: socket.id, signal: data.signal });
     });
 
-    // ✅ 채팅 메시지 전송 이벤트 처리
-    socket.on('chat-message', (message) => {
-        console.log(`채팅 메시지 from ${socket.id}: ${message}`);
-        io.emit('chat-message', message);
-    });
-
-    // ✅ 사용자 연결 종료 이벤트 처리
     socket.on('disconnect', () => {
-        console.log('사용자 연결 종료:', socket.id);
-
-        if (socket.id === currentSharer) {
-            console.log(`현재 화면 공유 사용자 ${socket.id}가 연결 종료됨. 화면 공유 중단`);
-            currentSharer = null;
-            io.emit('sharing-stopped');
-        }
+        console.log(`[SERVER] 사용자 연결 종료: ${socket.id}`);
+        socket.leave(currentRoom);
     });
 });
 

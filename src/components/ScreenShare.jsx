@@ -21,38 +21,25 @@ function ScreenShare() {
 
     useEffect(() => {
         socket.on('connect', () => {
-            setPeerId(socket.id);
             const queryParams = new URLSearchParams(window.location.search);
-            console.log('소켓 연결 성공:', socket.id);
+            const roomId = queryParams.get('room') || socket.id;
+
+            setPeerId(socket.id);
+            console.log('[CLIENT] 소켓 연결 성공:', socket.id);
+
+            // 방에 참여
+            socket.emit('join-room', roomId);
 
             if (!queryParams.get('room')) {
-                window.history.replaceState(null, '', `?room=${socket.id}`);
+                window.history.replaceState(null, '', `?room=${roomId}`);
                 setIsInitiator(true);
             } else {
-                initiatePeerConnection(queryParams.get('room'));
+                initiatePeerConnection(roomId);
             }
-        });
-
-        socket.on('signal', (data) => {
-            peerRef.current?.signal(data.signal);
-            console.log('신호 데이터 수신:', data);
-        });
-
-        socket.on('sharing-status', (status) => {
-            if (!status) {
-                alert('다른 사용자가 이미 화면을 공유하고 있습니다.');
-                setIsSharing(false);
-            }
-        });
-
-        socket.on('connect_error', (error) => {
-            console.error('소켓 연결 오류:', error);
         });
 
         return () => {
             socket.off('connect');
-            socket.off('signal');
-            socket.off('sharing-status');
         };
     }, []);
 
