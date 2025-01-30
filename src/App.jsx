@@ -7,6 +7,7 @@ function App() {
         <Router>
             <Routes>
                 <Route path="/" element={<ScreenShare />} />
+                <Route path="*" element={<div>404 Not Found</div>} />
             </Routes>
         </Router>
     );
