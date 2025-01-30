@@ -61,8 +61,26 @@ io.on('connection', (socket) => {
 
     socket.on('signal', (data) => {
         console.log(`[SERVER] 신호 데이터 수신 from ${socket.id} to ${data.to}`);
-        console.log(`[SERVER] 전달되는 신호:`, data.signal); // 신호 내용을 출력
-        io.to(data.to).emit('signal', { from: socket.id, signal: data.signal });
+        console.log(`[SERVER] 전달되는 신호:`, data.signal);
+
+        // 신호 타입이 offer 또는 answer인지 확인
+        if (data.signal.type === 'offer') {
+            console.log(`[SERVER] offer 신호 수신`);
+        } else if (data.signal.type === 'answer') {
+            console.log(`[SERVER] answer 신호 수신`);
+        } else if (data.signal.candidate) {
+            console.log(`[SERVER] ICE 후보 신호 수신`);
+        } else {
+            console.warn(`[SERVER] 알 수 없는 신호 타입 수신`, data.signal);
+        }
+
+        // 대상 소켓 유효성 검사 후 신호 전달
+        if (io.sockets.sockets.has(data.to)) {
+            console.log(`[SERVER] 신호를 대상 사용자(${data.to})에게 전달`);
+            io.to(data.to).emit('signal', { from: socket.id, signal: data.signal });
+        } else {
+            console.warn(`[SERVER] 대상 사용자(${data.to})가 존재하지 않음`);
+        }
     });
 
     socket.on('disconnect', () => {
