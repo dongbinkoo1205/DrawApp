@@ -62,6 +62,16 @@ function ScreenShare() {
         const peer = new SimplePeer({
             initiator: isInitiator,
             trickle: false,
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    {
+                        urls: 'turn:your-turn-server.com:3478',
+                        username: 'user',
+                        credential: 'password',
+                    },
+                ],
+            },
             stream: null,
         });
 
