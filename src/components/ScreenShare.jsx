@@ -12,6 +12,24 @@ const socket = io('https://drawapp-ne15.onrender.com', {
     path: '/socket.io/',
 });
 
+const turnServers = [
+    {
+        urls: 'turn:relay.metered.ca:443',
+        credential: 'public',
+        username: 'public',
+    },
+    {
+        urls: 'turn:numb.viagenie.ca',
+        credential: 'webrtc',
+        username: 'websitebeaver@mail.com',
+    },
+    {
+        urls: 'turn:stun.ekiga.net',
+        credential: 'public',
+        username: 'public',
+    },
+];
+
 function ScreenShare() {
     const [peerId, setPeerId] = useState('');
     const [isInitiator, setIsInitiator] = useState(false);
@@ -34,7 +52,7 @@ function ScreenShare() {
                 setIsInitiator(true);
             }
 
-            initiatePeerConnection(roomId);
+            initiatePeerConnectionWithFallback(roomId);
         });
 
         socket.on('signal', (data) => {
@@ -61,73 +79,62 @@ function ScreenShare() {
         };
     }, []);
 
-    const initiatePeerConnection = (roomId) => {
-        const peer = new SimplePeer({
-            initiator: isInitiator,
-            trickle: true,
-            config: {
-                iceServers: [
-                    // 무료 STUN 서버 목록
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' },
-                    { urls: 'stun:stun3.l.google.com:19302' },
-                    { urls: 'stun:stun4.l.google.com:19302' },
-                    { urls: 'stun:stun.stunprotocol.org:3478' },
-                    { urls: 'stun:stun.services.mozilla.com' },
-                    { urls: 'stun:stun.ekiga.net' },
-                    { urls: 'stun:stun.ideasip.com' },
-                    { urls: 'stun:stun.voiparound.com' },
-                    { urls: 'stun:stun.voipbuster.com' },
-                    { urls: 'stun:stun.voipstunt.com' },
+    const initiatePeerConnectionWithFallback = async (roomId) => {
+        for (let i = 0; i < turnServers.length; i++) {
+            console.log(`[DEBUG] 시도 중인 TURN 서버: ${turnServers[i].urls}`);
 
-                    // 무료 TURN 서버 (테스트 용)
-                    {
-                        urls: 'turn:relay.metered.ca:80',
-                        credential: 'public',
-                        username: 'public',
-                    },
-                    {
-                        urls: 'turn:relay.metered.ca:443',
-                        credential: 'public',
-                        username: 'public',
-                    },
-                    {
-                        urls: 'turn:relay.metered.ca:5349',
-                        credential: 'public',
-                        username: 'public',
-                    },
-                ],
-                iceTransportPolicy: 'relay', // TURN 서버 강제 사용 설정
-            },
-        });
+            const peer = new SimplePeer({
+                initiator: isInitiator,
+                trickle: true,
+                config: {
+                    iceServers: [turnServers[i]],
+                    iceTransportPolicy: 'relay',
+                },
+            });
 
-        peer.on('signal', (signal) => {
-            console.log('[DEBUG] 신호 생성:', signal);
-            // offer 또는 answer 신호가 생성되는지 확인
-            if (signal.type === 'offer' || signal.type === 'answer') {
-                console.log(`[DEBUG] 신호 타입: ${signal.type}`);
-            }
-            socket.emit('signal', { to: roomId, signal });
-        });
+            peer.on('signal', (signal) => {
+                console.log('[DEBUG] 신호 생성:', signal);
+                if (signal.type === 'offer' || signal.type === 'answer') {
+                    console.log(`[DEBUG] 신호 타입: ${signal.type}`);
+                }
+                socket.emit('signal', { to: roomId, signal });
+            });
 
-        peer.on('iceCandidate', (candidate) => {
-            if (candidate) {
-                console.log('[CLIENT] ICE 후보 생성:', candidate);
-                socket.emit('signal', { to: roomId, signal: { candidate } });
+            let candidateFound = false;
+
+            peer.on('iceCandidate', (candidate) => {
+                if (candidate) {
+                    console.log('[CLIENT] ICE 후보 생성:', candidate);
+                    candidateFound = true;
+                    socket.emit('signal', { to: roomId, signal: { candidate } });
+                } else {
+                    console.warn('[CLIENT] ICE 후보가 생성되지 않음');
+                }
+            });
+
+            peer.on('connect', () => {
+                console.log('[CLIENT] P2P 연결 성공');
+            });
+
+            peer.on('error', (err) => {
+                console.error('[CLIENT] P2P 연결 오류:', err);
+            });
+
+            peerRef.current = peer;
+
+            // 일정 시간 동안 ICE 후보가 생성되지 않으면 다음 서버로 시도
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+
+            if (candidateFound) {
+                console.log(`[INFO] 성공적인 TURN 서버: ${turnServers[i].urls}`);
+                return; // ICE 후보가 생성되면 더 이상 다른 서버로 시도하지 않음
             } else {
-                console.warn('[CLIENT] ICE 후보가 생성되지 않음');
+                console.warn(`[WARN] TURN 서버 실패: ${turnServers[i].urls}`);
+                peer.destroy();
             }
-        });
-        peer.on('connect', () => {
-            console.log('[CLIENT] P2P 연결 성공');
-        });
+        }
 
-        peer.on('error', (err) => {
-            console.error('[CLIENT] P2P 연결 오류:', err);
-        });
-
-        peerRef.current = peer;
+        console.error('[ERROR] 모든 TURN 서버 연결 실패');
     };
 
     const startScreenShare = async () => {
