@@ -16,7 +16,6 @@ export default defineConfig({
         target: 'esnext',
         modulePreload: false,
         rollupOptions: {
-            external: ['react', 'react-dom', 'react-sketch-canvas'],
             output: {
                 globals: {
                     react: 'React',
