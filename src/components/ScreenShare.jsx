@@ -14,24 +14,19 @@ const socket = io('https://drawapp-ne15.onrender.com', {
 
 const turnServers = [
     {
-        urls: 'turn:relay.metered.ca:443',
-        credential: 'public',
-        username: 'public',
-    },
-    {
-        urls: 'turn:relay.metered.ca:80',
-        credential: 'public',
-        username: 'public',
-    },
-    {
-        urls: 'turn:relay.metered.ca:5349',
-        credential: 'public',
-        username: 'public',
-    },
-    {
         urls: 'turn:numb.viagenie.ca',
-        credential: 'webrtc',
-        username: 'websitebeaver@mail.com',
+        credential: 'muazkh',
+        username: 'webrtc@live.com',
+    },
+    {
+        urls: 'turn:192.158.29.39:3478?transport=udp',
+        credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+        username: '28224511:1379330808',
+    },
+    {
+        urls: 'turn:192.158.29.39:3478?transport=tcp',
+        credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+        username: '28224511:1379330808',
     },
     {
         urls: 'turn:turn.bistri.com:80',
@@ -42,21 +37,6 @@ const turnServers = [
         urls: 'turn:turn.anyfirewall.com:443?transport=tcp',
         credential: 'webrtc',
         username: 'webrtc',
-    },
-    {
-        urls: 'turn:openrelay.metered.ca:80',
-        credential: 'openrelay',
-        username: 'openrelay',
-    },
-    {
-        urls: 'turn:openrelay.metered.ca:443',
-        credential: 'openrelay',
-        username: 'openrelay',
-    },
-    {
-        urls: 'turn:openrelay.metered.ca:5349',
-        credential: 'openrelay',
-        username: 'openrelay',
     },
 ];
 
