@@ -9,9 +9,7 @@ export default defineConfig({
     ],
     resolve: {
         alias: {
-            '@': '/src',
-            react: 'react',
-            'react-dom': 'react-dom',
+            '@': '/src', // 프로젝트 경로 alias 설정 유지
         },
     },
     build: {

@@ -1,5 +1,5 @@
 // DrawingCanvas.jsx
-import * as React from 'react';
+import React from 'react'; // 올바른 사용
 import { ReactSketchCanvas } from 'react-sketch-canvas';
 
 function DrawingCanvas() {
