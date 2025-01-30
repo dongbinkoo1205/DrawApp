@@ -88,10 +88,13 @@ function ScreenShare() {
         });
 
         peer.on('iceCandidate', (candidate) => {
-            console.log('[CLIENT] ICE 후보 생성:', candidate);
-            socket.emit('signal', { to: roomId, signal: { candidate } });
+            if (candidate) {
+                console.log('[CLIENT] ICE 후보 생성:', candidate);
+                socket.emit('signal', { to: roomId, signal: { candidate } });
+            } else {
+                console.warn('[CLIENT] ICE 후보가 생성되지 않음');
+            }
         });
-
         peer.on('connect', () => {
             console.log('[CLIENT] P2P 연결 성공');
         });
