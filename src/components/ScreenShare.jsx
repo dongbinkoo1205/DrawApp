@@ -4,7 +4,7 @@ import SimplePeer from 'simple-peer';
 import DrawingCanvas from './DrawCanvas';
 import ChatBox from './ChatBox';
 
-const socket = io('http://localhost:5000');
+const socket = io('https://drawapp-ne15.onrender.com');
 
 function ScreenShare() {
     const [peerId, setPeerId] = useState('');

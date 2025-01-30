@@ -5,7 +5,10 @@ const { Server } = require('socket.io');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors: { origin: '*' }, // 클라이언트와의 CORS 설정
+    cors: {
+        origin: '*', // 필요한 경우 도메인으로 제한 가능
+        methods: ['GET', 'POST'],
+    },
 });
 
 io.on('connection', (socket) => {
