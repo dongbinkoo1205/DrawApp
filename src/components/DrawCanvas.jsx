@@ -1,34 +1,36 @@
-import React, { useState } from 'react';
-import CanvasDraw from 'react-canvas-draw';
+import React, { useState, useRef } from 'react';
+import { ReactSketchCanvas } from 'react-sketch-canvas';
 
 function DrawingCanvas() {
     const [tool, setTool] = useState('pen');
-    const canvasRef = React.createRef();
+    const canvasRef = useRef();
 
     const handleClear = () => {
-        canvasRef.current.clear();
+        canvasRef.current.clearCanvas();
+    };
+
+    const handleToolChange = (selectedTool) => {
+        setTool(selectedTool);
+        canvasRef.current.eraseMode(selectedTool === 'eraser');
     };
 
     return (
         <div className="absolute inset-0">
-            <CanvasDraw
+            <ReactSketchCanvas
                 ref={canvasRef}
-                brushRadius={tool === 'pen' ? 2 : 10}
-                lazyRadius={0}
-                canvasWidth="100%"
-                canvasHeight="100%"
-                hideGrid
-                brushColor="#00FF00"
+                style={{ width: '100%', height: '100%', borderRadius: '8px' }}
+                strokeWidth={tool === 'pen' ? 2 : 10}
+                strokeColor="#00FF00"
             />
             <div className="absolute top-2 left-2 p-2 bg-gray-800 rounded shadow">
                 <button
-                    onClick={() => setTool('pen')}
+                    onClick={() => handleToolChange('pen')}
                     className={`px-2 py-1 text-sm ${tool === 'pen' ? 'bg-blue-500' : 'bg-gray-600'} rounded mr-2`}
                 >
                     펜
                 </button>
                 <button
-                    onClick={() => setTool('eraser')}
+                    onClick={() => handleToolChange('eraser')}
                     className={`px-2 py-1 text-sm ${tool === 'eraser' ? 'bg-blue-500' : 'bg-gray-600'} rounded mr-2`}
                 >
                     지우개
