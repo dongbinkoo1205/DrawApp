@@ -34,9 +34,9 @@ function ScreenShare() {
 
     const initiatePeerConnection = (roomId) => {
         const peer = new SimplePeer({
-            initiator: isInitiator,
+            initiator: true, // isInitiator 상태에 의존하지 않고 바로 true로 설정
             trickle: false,
-            stream: null, // 화면 스트림 추가 예정
+            stream: null,
         });
 
         peer.on('signal', (signal) => {

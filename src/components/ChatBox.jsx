@@ -1,18 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function ChatBox({ socket }) {
     const [message, setMessage] = useState('');
     const [chatLog, setChatLog] = useState([]);
 
-    const sendMessage = () => {
-        socket.emit('chat-message', message);
-        setChatLog([...chatLog, { type: 'sent', text: message }]);
-        setMessage('');
-    };
+    useEffect(() => {
+        const handleMessage = (data) => {
+            setChatLog((prevLog) => [...prevLog, { type: 'received', text: data }]);
+        };
 
-    socket.on('chat-message', (data) => {
-        setChatLog((prevLog) => [...prevLog, { type: 'received', text: data }]);
-    });
+        socket.on('chat-message', handleMessage);
+
+        return () => {
+            socket.off('chat-message', handleMessage); // 클린업으로 이벤트 리스너 제거
+        };
+    }, [socket]);
+
+    const sendMessage = () => {
+        if (message.trim()) {
+            socket.emit('chat-message', message);
+            setChatLog([...chatLog, { type: 'sent', text: message }]);
+            setMessage('');
+        }
+    };
 
     return (
         <div className="w-1/3 bg-gray-800 text-white p-4">

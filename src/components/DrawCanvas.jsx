@@ -1,9 +1,11 @@
 // DrawingCanvas.jsx
-import React from 'react'; // 올바른 사용
+import React, { useRef, useState } from 'react';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
 
 function DrawingCanvas() {
     const canvasRef = useRef();
+    const [tool, setTool] = useState('pen');
+
     const handleClear = () => {
         canvasRef.current.clearCanvas();
     };
