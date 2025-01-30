@@ -10,6 +10,8 @@ export default defineConfig({
         },
     },
     build: {
+        target: 'esnext',
+        modulePreload: false, // module preload 기능 비활성화
         rollupOptions: {
             input: 'index.html',
             plugins: [commonjs()], // CommonJS 모듈 호환 설정
