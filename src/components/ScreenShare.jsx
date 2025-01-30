@@ -1,7 +1,7 @@
 // components/ScreenShare.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
-import SimplePeer from 'simple-peer';
+import SimplePeer from 'simple-peer/simplepeer.min.js';
 import DrawingCanvas from './DrawCanvas';
 import ChatBox from './ChatBox';
 
@@ -12,6 +12,7 @@ const socket = io('https://drawapp-ne15.onrender.com', {
 function ScreenShare() {
     const [peerId, setPeerId] = useState('');
     const [isInitiator, setIsInitiator] = useState(false);
+    const [isSharing, setIsSharing] = useState(false); // 화면 공유 상태 관리
     const videoRef = useRef();
     const remoteVideoRef = useRef();
     const peerRef = useRef();
@@ -33,9 +34,17 @@ function ScreenShare() {
             peerRef.current?.signal(data.signal);
         });
 
+        socket.on('sharing-status', (status) => {
+            if (!status) {
+                alert('다른 사용자가 이미 화면을 공유하고 있습니다.');
+                setIsSharing(false);
+            }
+        });
+
         return () => {
             socket.off('connect');
             socket.off('signal');
+            socket.off('sharing-status');
         };
     }, []);
 
@@ -60,12 +69,25 @@ function ScreenShare() {
     };
 
     const startScreenShare = async () => {
+        if (isSharing) {
+            alert('이미 화면을 공유 중입니다.');
+            return;
+        }
+
         const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
         videoRef.current.srcObject = stream;
+        setIsSharing(true);
+
+        socket.emit('start-sharing', peerId); // 서버에 화면 공유 시작 알림
 
         if (peerRef.current) {
             peerRef.current.addStream(stream);
         }
+
+        stream.getVideoTracks()[0].onended = () => {
+            setIsSharing(false);
+            socket.emit('stop-sharing'); // 화면 공유 중단 알림
+        };
     };
 
     return (
