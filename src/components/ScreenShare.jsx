@@ -61,14 +61,18 @@ function ScreenShare() {
     const initiatePeerConnection = (roomId) => {
         const peer = new SimplePeer({
             initiator: isInitiator,
-            trickle: true,
+            trickle: true, // 실시간으로 ICE 후보 교환 활성화
             config: {
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'turn:relay.metered.ca:80', username: 'open', credential: 'open' },
+                    {
+                        urls: 'turn:numb.viagenie.ca',
+                        credential: 'webrtc',
+                        username: 'websitebeaver@mail.com',
+                    },
                 ],
             },
-            stream: screenStream,
+            stream: null, // 화면 공유 스트림은 나중에 추가
         });
 
         peer.on('signal', (signal) => {
