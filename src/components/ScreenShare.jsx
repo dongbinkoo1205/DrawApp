@@ -61,14 +61,14 @@ function ScreenShare() {
     const initiatePeerConnection = (roomId) => {
         const peer = new SimplePeer({
             initiator: isInitiator,
-            trickle: false, // trickle ICE를 비활성화하여 한 번에 모든 ICE 후보를 전송
+            trickle: true, // 실시간으로 ICE 후보 교환 활성화
             config: {
                 iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' }, // 기본 STUN 서버
+                    { urls: 'stun:stun.l.google.com:19302' },
                     {
-                        urls: 'turn:turn.example.com:3478', // TURN 서버 정보
-                        username: 'example_user',
-                        credential: 'example_password',
+                        urls: 'turn:relay.metered.ca:80',
+                        username: 'open',
+                        credential: 'open',
                     },
                 ],
             },
