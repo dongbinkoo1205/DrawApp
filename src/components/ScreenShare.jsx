@@ -26,11 +26,6 @@ const turnServers = [
         username: '0e7b1f0cd385987cbf443ba6',
         credential: 'CgDOWoNDYeHJSP/f',
     },
-    {
-        urls: 'turns:global.relay.metered.ca:443?transport=tcp',
-        username: '0e7b1f0cd385987cbf443ba6',
-        credential: 'CgDOWoNDYeHJSP/f',
-    },
 ];
 
 function ScreenShare() {
@@ -47,7 +42,7 @@ function ScreenShare() {
             const queryParams = new URLSearchParams(window.location.search);
             console.log('[CLIENT] 소켓 연결 성공:', socket.id);
 
-            const roomId = queryParams.get('room') || socket.id;
+            const roomId = queryParams.get('room') || 'default-room'; // 방 ID 기본값 설정
             socket.emit('join-room', roomId);
 
             if (!queryParams.get('room')) {
@@ -55,7 +50,7 @@ function ScreenShare() {
                 setIsInitiator(true);
             }
 
-            initiatePeerConnectionWithFallback(roomId);
+            initiatePeerConnection(roomId);
         });
 
         socket.on('signal', (data) => {
@@ -82,62 +77,41 @@ function ScreenShare() {
         };
     }, []);
 
-    const initiatePeerConnectionWithFallback = async (roomId) => {
-        for (let i = 0; i < turnServers.length; i++) {
-            console.log(`[DEBUG] 시도 중인 TURN 서버: ${turnServers[i].urls}`);
-
-            if (peerRef.current) {
-                peerRef.current.destroy();
-            }
-
-            const peer = new SimplePeer({
-                initiator: isInitiator,
-                trickle: true,
-                config: {
-                    iceServers: [turnServers[i]],
-                    iceTransportPolicy: 'all',  // TURN 강제 대신 모든 ICE 시도 허용
-                },
-            });
-
-            peer.on('signal', (signal) => {
-                console.log('[DEBUG] 신호 생성:', signal);
-                socket.emit('signal', { to: roomId, signal });
-            });
-
-            let candidateFound = false;
-
-            peer.on('iceCandidate', (candidate) => {
-                if (candidate) {
-                    console.log('[CLIENT] ICE 후보 생성:', candidate);
-                    candidateFound = true;
-                    socket.emit('signal', { to: roomId, signal: { candidate } });
-                } else {
-                    console.warn('[CLIENT] ICE 후보가 생성되지 않음');
-                }
-            });
-
-            peer.on('connect', () => {
-                console.log('[CLIENT] P2P 연결 성공');
-            });
-
-            peer.on('error', (err) => {
-                console.error('[CLIENT] P2P 연결 오류:', err);
-            });
-
-            peerRef.current = peer;
-
-            await new Promise((resolve) => setTimeout(resolve, 10000));  // 대기 시간 10초로 설정
-
-            if (candidateFound) {
-                console.log(`[INFO] 성공적인 TURN 서버: ${turnServers[i].urls}`);
-                return;
-            } else {
-                console.warn(`[WARN] TURN 서버 실패: ${turnServers[i].urls}`);
-                peer.destroy();
-            }
+    const initiatePeerConnection = (roomId) => {
+        if (peerRef.current) {
+            peerRef.current.destroy();
         }
 
-        console.error('[ERROR] 모든 TURN 서버 연결 실패');
+        const peer = new SimplePeer({
+            initiator: isInitiator,
+            trickle: true,
+            config: {
+                iceServers: turnServers,
+                iceTransportPolicy: 'all',
+            },
+        });
+
+        peer.on('signal', (signal) => {
+            console.log('[DEBUG] 신호 생성:', signal);
+            socket.emit('signal', { to: roomId, signal });
+        });
+
+        peer.on('connect', () => {
+            console.log('[CLIENT] P2P 연결 성공');
+        });
+
+        peer.on('stream', (stream) => {
+            console.log('[CLIENT] 스트림 수신:', stream);
+            if (remoteVideoRef.current) {
+                remoteVideoRef.current.srcObject = stream;
+            }
+        });
+
+        peer.on('error', (err) => {
+            console.error('[CLIENT] P2P 연결 오류:', err);
+        });
+
+        peerRef.current = peer;
     };
 
     const startScreenShare = async () => {

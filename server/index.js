@@ -38,6 +38,9 @@ io.on('connection', (socket) => {
 
         rooms[roomId].users.push(socket.id);
         console.log(`[SERVER] ${socket.id}가 방 ${roomId}에 참여했습니다. 현재 방 상태:`, rooms[roomId]);
+
+        // 방에 있는 사용자 목록 전송
+        io.to(roomId).emit('room-status', rooms[roomId].users);
     });
 
     socket.on('start-sharing', () => {
@@ -63,7 +66,7 @@ io.on('connection', (socket) => {
         console.log(`[SERVER] 신호 데이터 수신 from ${socket.id} to ${data.to}`);
         console.log(`[SERVER] 전달되는 신호:`, data.signal);
 
-        // 신호 타입이 offer 또는 answer인지 확인
+        // 신호 타입별로 로그 출력
         if (data.signal.type === 'offer') {
             console.log(`[SERVER] offer 신호 수신`);
         } else if (data.signal.type === 'answer') {
@@ -74,13 +77,17 @@ io.on('connection', (socket) => {
             console.warn(`[SERVER] 알 수 없는 신호 타입 수신`, data.signal);
         }
 
-        // 대상 소켓 유효성 검사 후 신호 전달
+        // 대상 소켓이 유효한지 확인 후 신호 전달
         if (io.sockets.sockets.has(data.to)) {
             console.log(`[SERVER] 신호를 대상 사용자(${data.to})에게 전달`);
             io.to(data.to).emit('signal', { from: socket.id, signal: data.signal });
         } else {
             console.warn(`[SERVER] 대상 사용자(${data.to})가 존재하지 않음`);
         }
+    });
+
+    socket.on('peer-connected', () => {
+        console.log(`[SERVER] 사용자 ${socket.id}가 P2P 연결에 성공했습니다.`);
     });
 
     socket.on('disconnect', () => {
@@ -96,6 +103,8 @@ io.on('connection', (socket) => {
             if (rooms[currentRoom].users.length === 0) {
                 console.log(`[SERVER] 방 ${currentRoom} 삭제`);
                 delete rooms[currentRoom];
+            } else {
+                io.to(currentRoom).emit('room-status', rooms[currentRoom].users);
             }
         }
     });
