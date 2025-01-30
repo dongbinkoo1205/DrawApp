@@ -67,14 +67,38 @@ function ScreenShare() {
             trickle: true,
             config: {
                 iceServers: [
+                    // 무료 STUN 서버 목록
                     { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:stun3.l.google.com:19302' },
+                    { urls: 'stun:stun4.l.google.com:19302' },
+                    { urls: 'stun:stun.stunprotocol.org:3478' },
+                    { urls: 'stun:stun.services.mozilla.com' },
+                    { urls: 'stun:stun.ekiga.net' },
+                    { urls: 'stun:stun.ideasip.com' },
+                    { urls: 'stun:stun.voiparound.com' },
+                    { urls: 'stun:stun.voipbuster.com' },
+                    { urls: 'stun:stun.voipstunt.com' },
+
+                    // 무료 TURN 서버 (테스트 용)
                     {
                         urls: 'turn:relay.metered.ca:80',
                         credential: 'public',
                         username: 'public',
                     },
+                    {
+                        urls: 'turn:relay.metered.ca:443',
+                        credential: 'public',
+                        username: 'public',
+                    },
+                    {
+                        urls: 'turn:relay.metered.ca:5349',
+                        credential: 'public',
+                        username: 'public',
+                    },
                 ],
-                iceTransportPolicy: 'relay', // TURN 서버 강제 사용
+                iceTransportPolicy: 'relay', // TURN 서버 강제 사용 설정
             },
         });
 
