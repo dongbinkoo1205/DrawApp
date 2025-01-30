@@ -35,14 +35,15 @@ function ScreenShare() {
     const videoRef = useRef();
     const remoteVideoRef = useRef();
     const peerRef = useRef();
-
     useEffect(() => {
+        if (socket.connected) return; // 중복 소켓 연결 방지
+
         socket.on('connect', () => {
             setPeerId(socket.id);
             const queryParams = new URLSearchParams(window.location.search);
             console.log('[CLIENT] 소켓 연결 성공:', socket.id);
 
-            const roomId = queryParams.get('room') || 'default-room'; // 방 ID 기본값 설정
+            const roomId = queryParams.get('room') || socket.id;
             socket.emit('join-room', roomId);
 
             if (!queryParams.get('room')) {
@@ -50,9 +51,13 @@ function ScreenShare() {
                 setIsInitiator(true);
             }
 
-            initiatePeerConnection(roomId);
+            initiatePeerConnection(roomId); // 단순화된 Peer 연결 함수 호출
         });
 
+        // 나머지 이벤트 핸들러들 유지
+    }, []);
+
+    useEffect(() => {
         socket.on('signal', (data) => {
             console.log('[CLIENT] 신호 수신:', data);
             if (peerRef.current) {

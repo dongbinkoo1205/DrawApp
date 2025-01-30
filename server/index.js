@@ -77,7 +77,6 @@ io.on('connection', (socket) => {
             console.warn(`[SERVER] 알 수 없는 신호 타입 수신`, data.signal);
         }
 
-        // 대상 소켓이 유효한지 확인 후 신호 전달
         if (io.sockets.sockets.has(data.to)) {
             console.log(`[SERVER] 신호를 대상 사용자(${data.to})에게 전달`);
             io.to(data.to).emit('signal', { from: socket.id, signal: data.signal });
