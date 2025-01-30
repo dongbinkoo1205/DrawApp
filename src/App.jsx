@@ -1,16 +1,15 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ScreenShare from './components/ScreenShare';
-import Canvas from './components/Canvas';
-import Chat from './components/Chat';
 
-const App = () => {
+function App() {
     return (
-        <div>
-            <ScreenShare />
-            <Canvas />
-            <Chat />
-        </div>
+        <Router>
+            <Routes>
+                <Route path="/" element={<ScreenShare />} />
+            </Routes>
+        </Router>
     );
-};
+}
 
 export default App;
