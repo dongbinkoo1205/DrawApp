@@ -1,4 +1,3 @@
-// components/ScreenShare.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { Buffer } from 'buffer';
 import io from 'socket.io-client';
@@ -33,14 +32,18 @@ function ScreenShare() {
             if (!queryParams.get('room')) {
                 window.history.replaceState(null, '', `?room=${roomId}`);
                 setIsInitiator(true);
-            } else {
-                initiatePeerConnection(roomId);
             }
+
+            initiatePeerConnection(roomId);
         });
 
         socket.on('signal', (data) => {
             console.log('[CLIENT] 신호 수신:', data);
-            peerRef.current?.signal(data.signal);
+            if (peerRef.current) {
+                peerRef.current.signal(data.signal);
+            } else {
+                console.error('[CLIENT] Peer 객체가 존재하지 않음.');
+            }
         });
 
         socket.on('sharing-started', ({ sharer }) => {
@@ -67,7 +70,7 @@ function ScreenShare() {
                     { urls: 'stun:stun.l.google.com:19302' },
                     { urls: 'turn:relay.metered.ca:80', credential: 'public', username: 'public' },
                 ],
-                iceTransportPolicy: 'relay', // TURN 서버를 강제 사용하도록 설정
+                iceTransportPolicy: 'relay',
             },
             stream: null,
         });
@@ -88,13 +91,19 @@ function ScreenShare() {
             console.log('[CLIENT] P2P 연결 성공');
         });
 
+        peer.on('iceCandidate', (candidate) => {
+            if (candidate) {
+                console.log('[CLIENT] ICE 후보 생성:', candidate);
+                socket.emit('signal', { to: roomId, signal: { candidate } });
+            }
+        });
+
         peer.on('error', (err) => {
             console.error('[CLIENT] P2P 연결 오류:', err);
         });
 
-        peer.on('iceCandidate', (candidate) => {
-            console.log('[CLIENT] ICE 후보 생성:', candidate);
-            socket.emit('signal', { to: roomId, signal: { candidate } });
+        peer.on('close', () => {
+            console.log('[CLIENT] P2P 연결 종료');
         });
 
         peerRef.current = peer;
