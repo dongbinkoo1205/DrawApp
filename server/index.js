@@ -39,7 +39,7 @@ io.on('connection', (socket) => {
         rooms[roomId].users.push(socket.id);
         console.log(`[SERVER] ${socket.id}가 방 ${roomId}에 참여했습니다. 현재 방 상태:`, rooms[roomId]);
 
-        // 방에 있는 사용자 목록 전송
+        // 방 상태 업데이트
         io.to(roomId).emit('room-status', rooms[roomId].users);
     });
 
@@ -66,7 +66,7 @@ io.on('connection', (socket) => {
         console.log(`[SERVER] 신호 데이터 수신 from ${socket.id} to ${data.to}`);
         console.log(`[SERVER] 전달되는 신호:`, data.signal);
 
-        // 신호 타입별로 로그 출력
+        // 신호 타입별 로그
         if (data.signal.type === 'offer') {
             console.log(`[SERVER] offer 신호 수신`);
         } else if (data.signal.type === 'answer') {
@@ -77,6 +77,7 @@ io.on('connection', (socket) => {
             console.warn(`[SERVER] 알 수 없는 신호 타입 수신`, data.signal);
         }
 
+        // 대상 소켓 유효성 검사 후 신호 전달
         if (io.sockets.sockets.has(data.to)) {
             console.log(`[SERVER] 신호를 대상 사용자(${data.to})에게 전달`);
             io.to(data.to).emit('signal', { from: socket.id, signal: data.signal });

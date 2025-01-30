@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Buffer } from 'buffer';
 import io from 'socket.io-client';
-import SimplePeer from 'simple-peer';
+import SimplePeer from 'simple-peer/simplepeer.min.js';
 import DrawingCanvas from './DrawCanvas';
 import ChatBox from './ChatBox';
-
 window.Buffer = Buffer;
 
 const socket = io('https://drawapp-ne15.onrender.com', {
