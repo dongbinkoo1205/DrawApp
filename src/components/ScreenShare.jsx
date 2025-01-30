@@ -14,12 +14,25 @@ const socket = io('https://drawapp-ne15.onrender.com', {
 
 const turnServers = [
     {
-        urls: 'turn:drawapp.metered.live:3478',
+        urls: 'stun:stun.relay.metered.ca:80',
+    },
+    {
+        urls: 'turn:global.relay.metered.ca:80',
         username: '0e7b1f0cd385987cbf443ba6',
         credential: 'CgDOWoNDYeHJSP/f',
     },
     {
-        urls: 'turns:drawapp.metered.live:5349', // TLS를 통한 보안 TURN 서버
+        urls: 'turn:global.relay.metered.ca:80?transport=tcp',
+        username: '0e7b1f0cd385987cbf443ba6',
+        credential: 'CgDOWoNDYeHJSP/f',
+    },
+    {
+        urls: 'turn:global.relay.metered.ca:443',
+        username: '0e7b1f0cd385987cbf443ba6',
+        credential: 'CgDOWoNDYeHJSP/f',
+    },
+    {
+        urls: 'turns:global.relay.metered.ca:443?transport=tcp',
         username: '0e7b1f0cd385987cbf443ba6',
         credential: 'CgDOWoNDYeHJSP/f',
     },
