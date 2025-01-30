@@ -1,57 +1,63 @@
-import React, { useEffect, useState, useRef } from 'react';
-import Peer from 'peerjs';
+import React, { useEffect, useRef, useState } from 'react';
+import io from 'socket.io-client';
+import SimplePeer from 'simple-peer';
+import DrawingCanvas from './DrawCanvas';
 import ChatBox from './ChatBox';
-import DrawCanvas from './DrawCanvas';
+
+const socket = io('http://localhost:5000');
 
 function ScreenShare() {
     const [peerId, setPeerId] = useState('');
-    const [remoteStream, setRemoteStream] = useState(null);
+    const [isInitiator, setIsInitiator] = useState(false);
     const videoRef = useRef();
     const remoteVideoRef = useRef();
     const peerRef = useRef();
 
     useEffect(() => {
-        const peer = new Peer({
-            host: 'localhost',
-            port: 5000,
-            path: '/peerjs',
-            config: {
-                iceServers: [{ url: 'stun:stun.l.google.com:19302' }],
-            },
-        });
+        socket.on('connect', () => {
+            setPeerId(socket.id);
+            console.log('내 소켓 ID:', socket.id);
 
-        peer.on('open', (id) => {
-            setPeerId(id);
             const queryParams = new URLSearchParams(window.location.search);
             if (!queryParams.get('room')) {
-                window.history.replaceState(null, '', `?room=${id}`);
+                window.history.replaceState(null, '', `?room=${socket.id}`);
+                setIsInitiator(true);
+            } else {
+                initiatePeerConnection(queryParams.get('room'));
             }
         });
 
-        peer.on('call', (call) => {
-            call.answer();
-            call.on('stream', (stream) => {
-                setRemoteStream(stream);
-                if (remoteVideoRef.current) {
-                    remoteVideoRef.current.srcObject = stream;
-                }
-            });
+        socket.on('signal', (data) => {
+            peerRef.current.signal(data.signal);
+        });
+    }, []);
+
+    const initiatePeerConnection = (roomId) => {
+        const peer = new SimplePeer({
+            initiator: isInitiator,
+            trickle: false,
+            stream: null, // 화면 스트림 추가 예정
+        });
+
+        peer.on('signal', (signal) => {
+            socket.emit('signal', { to: roomId, signal });
+        });
+
+        peer.on('stream', (stream) => {
+            if (remoteVideoRef.current) {
+                remoteVideoRef.current.srcObject = stream;
+            }
         });
 
         peerRef.current = peer;
-
-        return () => peer.destroy();
-    }, []);
+    };
 
     const startScreenShare = async () => {
         const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
         videoRef.current.srcObject = stream;
 
-        const queryParams = new URLSearchParams(window.location.search);
-        const roomId = queryParams.get('room');
-        if (roomId) {
-            const call = peerRef.current.call(roomId, stream);
-            call.on('close', () => console.log('통화 종료'));
+        if (peerRef.current) {
+            peerRef.current.addStream(stream);
         }
     };
 
@@ -65,20 +71,15 @@ function ScreenShare() {
             </header>
 
             <main className="flex-grow flex">
-                {/* 내 화면 미리보기 */}
                 <div className="relative flex-1">
                     <video ref={videoRef} autoPlay muted className="w-full h-full object-cover" />
-                    <DrawCanvas />
+                    <DrawingCanvas />
+                </div>
+                <div className="relative flex-1">
+                    <video ref={remoteVideoRef} autoPlay className="w-full h-full object-cover" />
                 </div>
 
-                {/* 상대방 화면 */}
-                {remoteStream && (
-                    <div className="flex-1 relative">
-                        <video ref={remoteVideoRef} autoPlay className="w-full h-full object-cover" />
-                    </div>
-                )}
-
-                <ChatBox peer={peerRef.current} />
+                <ChatBox socket={socket} />
             </main>
         </div>
     );

@@ -1,21 +1,17 @@
 import React, { useState } from 'react';
 
-function ChatBox({ peer }) {
+function ChatBox({ socket }) {
     const [message, setMessage] = useState('');
     const [chatLog, setChatLog] = useState([]);
 
     const sendMessage = () => {
-        peer?.connections.forEach((conn) => {
-            conn.send(message);
-        });
+        socket.emit('chat-message', message);
         setChatLog([...chatLog, { type: 'sent', text: message }]);
         setMessage('');
     };
 
-    peer?.on('connection', (conn) => {
-        conn.on('data', (data) => {
-            setChatLog((prevLog) => [...prevLog, { type: 'received', text: data }]);
-        });
+    socket.on('chat-message', (data) => {
+        setChatLog((prevLog) => [...prevLog, { type: 'received', text: data }]);
     });
 
     return (

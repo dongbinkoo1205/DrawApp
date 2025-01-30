@@ -1,24 +1,26 @@
 const express = require('express');
-const { ExpressPeerServer } = require('peer');
 const http = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-
-// PeerJS 서버 설정
-const peerServer = ExpressPeerServer(server, {
-    debug: true,
-    path: '/peerjs',
+const io = new Server(server, {
+    cors: { origin: '*' }, // 클라이언트와의 CORS 설정
 });
 
-app.use('/peerjs', peerServer);
+io.on('connection', (socket) => {
+    console.log('사용자 연결됨:', socket.id);
 
-app.get('/', (req, res) => {
-    res.send('PeerJS Server is running...');
+    // 시그널 데이터 전송
+    socket.on('signal', (data) => {
+        io.to(data.to).emit('signal', { from: socket.id, signal: data.signal });
+    });
+
+    socket.on('disconnect', () => {
+        console.log('사용자 연결 종료:', socket.id);
+    });
 });
 
-// 서버 실행
-const PORT = 5000;
-server.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+server.listen(5000, () => {
+    console.log('Signaling 서버가 5000번 포트에서 실행 중...');
 });
