@@ -36,6 +36,26 @@ const turnServers = [
         username: '0e7b1f0cd385987cbf443ba6',
         credential: 'CgDOWoNDYeHJSP/f',
     },
+    {
+        urls: 'turn:global.relay.metered.ca:80',
+        username: '343eb39487289852d9d44d25',
+        credential: 'gqBMF/Igc81vlkJN',
+    },
+    {
+        urls: 'turn:global.relay.metered.ca:80?transport=tcp',
+        username: '343eb39487289852d9d44d25',
+        credential: 'gqBMF/Igc81vlkJN',
+    },
+    {
+        urls: 'turn:global.relay.metered.ca:443',
+        username: '343eb39487289852d9d44d25',
+        credential: 'gqBMF/Igc81vlkJN',
+    },
+    {
+        urls: 'turns:global.relay.metered.ca:443?transport=tcp',
+        username: '343eb39487289852d9d44d25',
+        credential: 'gqBMF/Igc81vlkJN',
+    },
 ];
 
 function ScreenShare() {
