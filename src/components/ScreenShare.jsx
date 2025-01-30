@@ -89,21 +89,27 @@ function ScreenShare() {
             alert('이미 화면을 공유 중입니다.');
             return;
         }
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            console.log('화면 공유 스트림 가져옴:', stream); // 스트림 확인
+            videoRef.current.srcObject = stream;
+            setIsSharing(true);
 
-        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-        videoRef.current.srcObject = stream;
-        setIsSharing(true);
+            socket.emit('start-sharing', peerId);
 
-        socket.emit('start-sharing', peerId);
+            if (peerRef.current) {
+                peerRef.current.addStream(stream);
+                console.log('스트림이 P2P 연결에 추가됨'); // 스트림 추가 확인
+            }
 
-        if (peerRef.current) {
-            peerRef.current.addStream(stream);
+            stream.getVideoTracks()[0].onended = () => {
+                console.log('화면 공유가 중단됨');
+                setIsSharing(false);
+                socket.emit('stop-sharing');
+            };
+        } catch (error) {
+            console.error('화면 공유 중 오류 발생:', error);
         }
-
-        stream.getVideoTracks()[0].onended = () => {
-            setIsSharing(false);
-            socket.emit('stop-sharing');
-        };
     };
 
     return (
