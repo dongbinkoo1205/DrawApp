@@ -11,7 +11,6 @@ const socket = io('https://drawapp-ne15.onrender.com', {
     transports: ['websocket'],
     path: '/socket.io/',
 });
-
 const turnServers = [
     {
         urls: 'stun:stun.relay.metered.ca:80',
