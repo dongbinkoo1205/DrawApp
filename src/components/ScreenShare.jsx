@@ -14,29 +14,14 @@ const socket = io('https://drawapp-ne15.onrender.com', {
 
 const turnServers = [
     {
-        urls: 'turn:numb.viagenie.ca',
-        credential: 'muazkh',
-        username: 'webrtc@live.com',
+        urls: 'turn:drawapp.metered.live:3478',
+        username: '0e7b1f0cd385987cbf443ba6',
+        credential: 'CgDOWoNDYeHJSP/f',
     },
     {
-        urls: 'turn:192.158.29.39:3478?transport=udp',
-        credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-        username: '28224511:1379330808',
-    },
-    {
-        urls: 'turn:192.158.29.39:3478?transport=tcp',
-        credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-        username: '28224511:1379330808',
-    },
-    {
-        urls: 'turn:turn.bistri.com:80',
-        credential: 'homeo',
-        username: 'homeo',
-    },
-    {
-        urls: 'turn:turn.anyfirewall.com:443?transport=tcp',
-        credential: 'webrtc',
-        username: 'webrtc',
+        urls: 'turns:drawapp.metered.live:5349', // TLS를 통한 보안 TURN 서버
+        username: '0e7b1f0cd385987cbf443ba6',
+        credential: 'CgDOWoNDYeHJSP/f',
     },
 ];
 
