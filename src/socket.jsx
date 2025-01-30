@@ -2,12 +2,8 @@ import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 
 // ✅ WebSocket 연결 설정
-const socket = io('https://drawapp-ne15.onrender.com', {
-    transports: ['websocket'], // ✅ WebSocket 연결 방식 고정
-    reconnection: true,
-    reconnectionAttempts: 10,
-    reconnectionDelay: 2000,
-});
+const socket = io('https://drawapp-ne15.onrender.com', { transports: ['websocket'] });
+console.log(socket.connected); // true 출력 확인
 
 const Chat = () => {
     const [messages, setMessages] = useState([]);

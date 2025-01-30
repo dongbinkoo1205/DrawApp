@@ -17,7 +17,7 @@ const io = new Server(server, {
 
 // ✅ 기본 경로에 대한 응답 추가
 app.get('/', (req, res) => {
-    res.send('Signaling 서버가 정상적으로 작동 중입니다.');
+    res.send('<h1>Signaling 서버가 정상적으로 작동 중입니다.</h1>');
 });
 
 io.on('connection', (socket) => {
