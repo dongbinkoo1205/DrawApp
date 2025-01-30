@@ -13,6 +13,7 @@ export default defineConfig({
         },
     },
     build: {
+        sourcemap: true, // 소스 맵 활성화
         target: 'esnext',
         modulePreload: false,
         rollupOptions: {
