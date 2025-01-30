@@ -6,13 +6,18 @@ const app = express();
 const server = http.createServer(app);
 
 // ✅ 포트를 환경 변수로부터 가져옵니다.
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
 const io = new Server(server, {
     cors: {
         origin: '*',
         methods: ['GET', 'POST'],
     },
+});
+
+// ✅ 기본 경로에 대한 응답 추가
+app.get('/', (req, res) => {
+    res.send('Signaling 서버가 정상적으로 작동 중입니다.');
 });
 
 io.on('connection', (socket) => {
