@@ -13,36 +13,36 @@ const io = new Server(server, {
         methods: ['GET', 'POST'],
         credentials: true,
     },
-    path: '/socket.io/', // 경로 설정
+    path: '/socket.io/',
 });
 
 app.get('/', (req, res) => {
     res.send('Signaling 서버가 정상적으로 작동 중입니다.');
 });
 
-let currentSharer = null; // 현재 화면 공유 중인 사용자 ID
-let rooms = {}; // 방 정보 관리 (방별 사용자 목록)
+let rooms = {};
 
 io.on('connection', (socket) => {
     console.log(`[SERVER] 사용자 연결됨: ${socket.id}`);
 
     let currentRoom = null;
 
-    // 방 참여 처리
     socket.on('join-room', (roomId) => {
         currentRoom = roomId;
         socket.join(roomId);
+
         if (!rooms[roomId]) {
             rooms[roomId] = { users: [], sharer: null };
+            console.log(`[SERVER] 새 방 생성: ${roomId}`);
         }
+
         rooms[roomId].users.push(socket.id);
-        console.log(`[SERVER] ${socket.id}가 방 ${roomId}에 참여했습니다.`);
+        console.log(`[SERVER] ${socket.id}가 방 ${roomId}에 참여했습니다. 현재 방 상태:`, rooms[roomId]);
     });
 
-    // 화면 공유 시작 이벤트
     socket.on('start-sharing', () => {
-        if (rooms[currentRoom].sharer) {
-            console.log(`[SERVER] 이미 ${rooms[currentRoom].sharer}가 화면을 공유 중임`);
+        if (rooms[currentRoom]?.sharer) {
+            console.log(`[SERVER] ${socket.id}의 공유 요청 거부: 이미 ${rooms[currentRoom].sharer}가 공유 중`);
             socket.emit('sharing-denied', '다른 사용자가 이미 화면을 공유 중입니다.');
         } else {
             rooms[currentRoom].sharer = socket.id;
@@ -51,7 +51,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 화면 공유 중단 이벤트
     socket.on('stop-sharing', () => {
         if (rooms[currentRoom]?.sharer === socket.id) {
             console.log(`[SERVER] ${socket.id}가 화면 공유를 중단했습니다.`);
@@ -60,13 +59,11 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 시그널 데이터 전송 이벤트
     socket.on('signal', (data) => {
-        console.log(`[SERVER] 신호 데이터 수신 from ${socket.id} -> 방 ${currentRoom} 내 사용자 ${data.to}`);
+        console.log(`[SERVER] 신호 데이터 수신 from ${socket.id} -> 사용자 ${data.to}`, data.signal);
         io.to(data.to).emit('signal', { from: socket.id, signal: data.signal });
     });
 
-    // 사용자 연결 종료 처리
     socket.on('disconnect', () => {
         console.log(`[SERVER] 사용자 연결 종료: ${socket.id}`);
         if (rooms[currentRoom]) {
@@ -76,14 +73,15 @@ io.on('connection', (socket) => {
                 rooms[currentRoom].sharer = null;
                 io.in(currentRoom).emit('sharing-stopped');
             }
+
             if (rooms[currentRoom].users.length === 0) {
-                delete rooms[currentRoom]; // 방 삭제
+                console.log(`[SERVER] 방 ${currentRoom} 삭제`);
+                delete rooms[currentRoom];
             }
         }
     });
 });
 
-// ✅ 서버 시작
 server.listen(PORT, () => {
     console.log(`Signaling 서버가 ${PORT}번 포트에서 실행 중...`);
 });

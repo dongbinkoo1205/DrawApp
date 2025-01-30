@@ -5,10 +5,12 @@ import io from 'socket.io-client';
 import SimplePeer from 'simple-peer/simplepeer.min.js';
 import DrawingCanvas from './DrawCanvas';
 import ChatBox from './ChatBox';
-window.Buffer = Buffer; // 브라우저 환경에 Buffer 전역 객체 설정
+
+window.Buffer = Buffer;
+
 const socket = io('https://drawapp-ne15.onrender.com', {
     transports: ['websocket'],
-    path: '/socket.io/', // 서버와 경로 일치시킴
+    path: '/socket.io/',
 });
 
 function ScreenShare() {
@@ -21,13 +23,11 @@ function ScreenShare() {
 
     useEffect(() => {
         socket.on('connect', () => {
-            const queryParams = new URLSearchParams(window.location.search);
-            const roomId = queryParams.get('room') || socket.id;
-
             setPeerId(socket.id);
+            const queryParams = new URLSearchParams(window.location.search);
             console.log('[CLIENT] 소켓 연결 성공:', socket.id);
 
-            // 방 참여 및 초기화
+            const roomId = queryParams.get('room') || socket.id;
             socket.emit('join-room', roomId);
 
             if (!queryParams.get('room')) {
@@ -47,10 +47,6 @@ function ScreenShare() {
             console.log('[CLIENT] 화면 공유 시작 알림 수신:', sharer);
         });
 
-        socket.on('sharing-stopped', () => {
-            console.log('[CLIENT] 화면 공유 중단 알림 수신');
-        });
-
         socket.on('connect_error', (error) => {
             console.error('[CLIENT] 소켓 연결 오류:', error);
         });
@@ -59,7 +55,6 @@ function ScreenShare() {
             socket.off('connect');
             socket.off('signal');
             socket.off('sharing-started');
-            socket.off('sharing-stopped');
         };
     }, []);
 
@@ -71,9 +66,10 @@ function ScreenShare() {
         });
 
         peer.on('signal', (signal) => {
+            console.log('[CLIENT] 신호 전송:', { to: roomId, signal });
             socket.emit('signal', { to: roomId, signal });
-            console.log('signal 이벤트 전송:', { to: roomId, signal });
         });
+
         peer.on('stream', (stream) => {
             console.log('[CLIENT] 스트림 수신:', stream);
             if (remoteVideoRef.current) {
@@ -82,11 +78,11 @@ function ScreenShare() {
         });
 
         peer.on('connect', () => {
-            console.log('P2P 연결 성공');
+            console.log('[CLIENT] P2P 연결 성공');
         });
 
         peer.on('error', (err) => {
-            console.error('P2P 연결 오류:', err);
+            console.error('[CLIENT] P2P 연결 오류:', err);
         });
 
         peerRef.current = peer;
@@ -97,9 +93,10 @@ function ScreenShare() {
             alert('이미 화면을 공유 중입니다.');
             return;
         }
+
         try {
             const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-            console.log('화면 공유 스트림 가져옴:', stream); // 스트림 확인
+            console.log('[CLIENT] 화면 공유 스트림 가져옴:', stream);
             videoRef.current.srcObject = stream;
             setIsSharing(true);
 
@@ -107,16 +104,16 @@ function ScreenShare() {
 
             if (peerRef.current) {
                 peerRef.current.addStream(stream);
-                console.log('스트림이 P2P 연결에 추가됨'); // 스트림 추가 확인
+                console.log('[CLIENT] 스트림이 P2P 연결에 추가됨');
             }
 
             stream.getVideoTracks()[0].onended = () => {
-                console.log('화면 공유가 중단됨');
+                console.log('[CLIENT] 화면 공유가 중단됨');
                 setIsSharing(false);
                 socket.emit('stop-sharing');
             };
         } catch (error) {
-            console.error('화면 공유 중 오류 발생:', error);
+            console.error('[CLIENT] 화면 공유 중 오류 발생:', error);
         }
     };
 
