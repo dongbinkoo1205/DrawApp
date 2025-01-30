@@ -22,11 +22,6 @@ const turnServers = [
         credential: 'CgDOWoNDYeHJSP/f',
     },
     {
-        urls: 'turn:global.relay.metered.ca:80?transport=tcp',
-        username: '0e7b1f0cd385987cbf443ba6',
-        credential: 'CgDOWoNDYeHJSP/f',
-    },
-    {
         urls: 'turn:global.relay.metered.ca:443',
         username: '0e7b1f0cd385987cbf443ba6',
         credential: 'CgDOWoNDYeHJSP/f',
@@ -35,16 +30,6 @@ const turnServers = [
         urls: 'turns:global.relay.metered.ca:443?transport=tcp',
         username: '0e7b1f0cd385987cbf443ba6',
         credential: 'CgDOWoNDYeHJSP/f',
-    },
-    {
-        urls: 'turn:global.relay.metered.ca:80',
-        username: '343eb39487289852d9d44d25',
-        credential: 'gqBMF/Igc81vlkJN',
-    },
-    {
-        urls: 'turn:global.relay.metered.ca:443',
-        username: '343eb39487289852d9d44d25',
-        credential: 'gqBMF/Igc81vlkJN',
     },
 ];
 
@@ -110,22 +95,18 @@ function ScreenShare() {
                 trickle: true,
                 config: {
                     iceServers: [turnServers[i]],
-                    iceTransportPolicy: 'all',
+                    iceTransportPolicy: 'all',  // TURN 강제 대신 모든 ICE 시도 허용
                 },
             });
 
             peer.on('signal', (signal) => {
                 console.log('[DEBUG] 신호 생성:', signal);
-                if (signal.type === 'offer' || signal.type === 'answer') {
-                    console.log(`[DEBUG] 신호 타입: ${signal.type}`);
-                }
                 socket.emit('signal', { to: roomId, signal });
             });
 
             let candidateFound = false;
 
-            // 이벤트 이름을 ice로 수정
-            peer.on('ice', (candidate) => {
+            peer.on('iceCandidate', (candidate) => {
                 if (candidate) {
                     console.log('[CLIENT] ICE 후보 생성:', candidate);
                     candidateFound = true;
@@ -145,7 +126,7 @@ function ScreenShare() {
 
             peerRef.current = peer;
 
-            await new Promise((resolve) => setTimeout(resolve, 10000)); // 대기 시간 10초로 증가
+            await new Promise((resolve) => setTimeout(resolve, 10000));  // 대기 시간 10초로 설정
 
             if (candidateFound) {
                 console.log(`[INFO] 성공적인 TURN 서버: ${turnServers[i].urls}`);
