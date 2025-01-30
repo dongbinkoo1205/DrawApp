@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -6,7 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: '*', // 필요한 경우 도메인으로 제한 가능
+        origin: '*',
         methods: ['GET', 'POST'],
     },
 });
@@ -14,9 +15,12 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
     console.log('사용자 연결됨:', socket.id);
 
-    // 시그널 데이터 전송
     socket.on('signal', (data) => {
         io.to(data.to).emit('signal', { from: socket.id, signal: data.signal });
+    });
+
+    socket.on('chat-message', (message) => {
+        io.emit('chat-message', message); // 메시지 브로드캐스트
     });
 
     socket.on('disconnect', () => {

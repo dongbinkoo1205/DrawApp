@@ -1,10 +1,13 @@
+// components/ScreenShare.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 import SimplePeer from 'simple-peer';
 import DrawingCanvas from './DrawCanvas';
 import ChatBox from './ChatBox';
 
-const socket = io('https://drawapp-ne15.onrender.com');
+const socket = io('https://drawapp-ne15.onrender.com', {
+    transports: ['websocket'],
+});
 
 function ScreenShare() {
     const [peerId, setPeerId] = useState('');
@@ -16,9 +19,8 @@ function ScreenShare() {
     useEffect(() => {
         socket.on('connect', () => {
             setPeerId(socket.id);
-            console.log('내 소켓 ID:', socket.id);
-
             const queryParams = new URLSearchParams(window.location.search);
+
             if (!queryParams.get('room')) {
                 window.history.replaceState(null, '', `?room=${socket.id}`);
                 setIsInitiator(true);
@@ -28,13 +30,18 @@ function ScreenShare() {
         });
 
         socket.on('signal', (data) => {
-            peerRef.current.signal(data.signal);
+            peerRef.current?.signal(data.signal);
         });
+
+        return () => {
+            socket.off('connect');
+            socket.off('signal');
+        };
     }, []);
 
     const initiatePeerConnection = (roomId) => {
         const peer = new SimplePeer({
-            initiator: true, // isInitiator 상태에 의존하지 않고 바로 true로 설정
+            initiator: isInitiator,
             trickle: false,
             stream: null,
         });
@@ -73,7 +80,7 @@ function ScreenShare() {
             <main className="flex-grow flex">
                 <div className="relative flex-1">
                     <video ref={videoRef} autoPlay muted className="w-full h-full object-cover" />
-                    <DrawingCanvas />
+                    <DrawingCanvas socket={socket} />
                 </div>
                 <div className="relative flex-1">
                     <video ref={remoteVideoRef} autoPlay className="w-full h-full object-cover" />

@@ -1,3 +1,4 @@
+// components/ChatBox.jsx
 import React, { useState, useEffect } from 'react';
 
 function ChatBox({ socket }) {
@@ -5,21 +6,21 @@ function ChatBox({ socket }) {
     const [chatLog, setChatLog] = useState([]);
 
     useEffect(() => {
-        const handleMessage = (data) => {
-            setChatLog((prevLog) => [...prevLog, { type: 'received', text: data }]);
+        const handleMessage = (msg) => {
+            setChatLog((prevLog) => [...prevLog, msg]);
         };
 
         socket.on('chat-message', handleMessage);
 
         return () => {
-            socket.off('chat-message', handleMessage); // 클린업으로 이벤트 리스너 제거
+            socket.off('chat-message', handleMessage);
         };
     }, [socket]);
 
     const sendMessage = () => {
         if (message.trim()) {
             socket.emit('chat-message', message);
-            setChatLog([...chatLog, { type: 'sent', text: message }]);
+            setChatLog([...chatLog, message]);
             setMessage('');
         }
     };
@@ -29,8 +30,8 @@ function ChatBox({ socket }) {
             <h3 className="font-bold mb-2">채팅</h3>
             <div className="h-64 overflow-y-scroll bg-gray-700 p-2 rounded">
                 {chatLog.map((chat, index) => (
-                    <div key={index} className={`mb-1 ${chat.type === 'sent' ? 'text-right' : ''}`}>
-                        {chat.text}
+                    <div key={index} className="mb-1 text-right">
+                        {chat}
                     </div>
                 ))}
             </div>
