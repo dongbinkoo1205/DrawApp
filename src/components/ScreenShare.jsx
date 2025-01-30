@@ -19,14 +19,44 @@ const turnServers = [
         username: 'public',
     },
     {
+        urls: 'turn:relay.metered.ca:80',
+        credential: 'public',
+        username: 'public',
+    },
+    {
+        urls: 'turn:relay.metered.ca:5349',
+        credential: 'public',
+        username: 'public',
+    },
+    {
         urls: 'turn:numb.viagenie.ca',
         credential: 'webrtc',
         username: 'websitebeaver@mail.com',
     },
     {
-        urls: 'turn:stun.ekiga.net',
-        credential: 'public',
-        username: 'public',
+        urls: 'turn:turn.bistri.com:80',
+        credential: 'homeo',
+        username: 'homeo',
+    },
+    {
+        urls: 'turn:turn.anyfirewall.com:443?transport=tcp',
+        credential: 'webrtc',
+        username: 'webrtc',
+    },
+    {
+        urls: 'turn:openrelay.metered.ca:80',
+        credential: 'openrelay',
+        username: 'openrelay',
+    },
+    {
+        urls: 'turn:openrelay.metered.ca:443',
+        credential: 'openrelay',
+        username: 'openrelay',
+    },
+    {
+        urls: 'turn:openrelay.metered.ca:5349',
+        credential: 'openrelay',
+        username: 'openrelay',
     },
 ];
 
