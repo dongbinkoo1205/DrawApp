@@ -110,7 +110,7 @@ function ScreenShare() {
                 trickle: true,
                 config: {
                     iceServers: [turnServers[i]],
-                    iceTransportPolicy: 'relay',
+                    iceTransportPolicy: 'all',
                 },
             });
 
