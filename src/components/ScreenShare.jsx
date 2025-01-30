@@ -65,6 +65,7 @@ function ScreenShare() {
 
         peer.on('signal', (signal) => {
             socket.emit('signal', { to: roomId, signal });
+            console.log('signal 이벤트 전송:', { to: roomId, signal });
         });
 
         peer.on('stream', (stream) => {
