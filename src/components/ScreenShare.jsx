@@ -67,43 +67,31 @@ function ScreenShare() {
             trickle: true,
             config: {
                 iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'turn:relay.metered.ca:80', credential: 'public', username: 'public' },
+                    { urls: 'stun:stun.l.google.com:19302' }, // STUN 서버만 사용
                 ],
-                iceTransportPolicy: 'relay',
             },
-            stream: null,
         });
 
         peer.on('signal', (signal) => {
             console.log('[DEBUG] 신호 생성:', signal);
+            // offer 또는 answer 신호가 생성되는지 확인
+            if (signal.type === 'offer' || signal.type === 'answer') {
+                console.log(`[DEBUG] 신호 타입: ${signal.type}`);
+            }
             socket.emit('signal', { to: roomId, signal });
         });
 
-        peer.on('stream', (stream) => {
-            console.log('[CLIENT] 스트림 수신:', stream);
-            if (remoteVideoRef.current) {
-                remoteVideoRef.current.srcObject = stream;
-            }
+        peer.on('iceCandidate', (candidate) => {
+            console.log('[CLIENT] ICE 후보 생성:', candidate);
+            socket.emit('signal', { to: roomId, signal: { candidate } });
         });
 
         peer.on('connect', () => {
             console.log('[CLIENT] P2P 연결 성공');
         });
 
-        peer.on('iceCandidate', (candidate) => {
-            if (candidate) {
-                console.log('[CLIENT] ICE 후보 생성:', candidate);
-                socket.emit('signal', { to: roomId, signal: { candidate } });
-            }
-        });
-
         peer.on('error', (err) => {
             console.error('[CLIENT] P2P 연결 오류:', err);
-        });
-
-        peer.on('close', () => {
-            console.log('[CLIENT] P2P 연결 종료');
         });
 
         peerRef.current = peer;

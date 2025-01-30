@@ -61,6 +61,7 @@ io.on('connection', (socket) => {
 
     socket.on('signal', (data) => {
         console.log(`[SERVER] 신호 데이터 수신 from ${socket.id} to ${data.to}`);
+        console.log(`[SERVER] 전달되는 신호:`, data.signal); // 신호 내용을 출력
         io.to(data.to).emit('signal', { from: socket.id, signal: data.signal });
     });
 
