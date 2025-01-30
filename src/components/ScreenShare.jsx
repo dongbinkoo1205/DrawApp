@@ -27,7 +27,7 @@ function ScreenShare() {
             setPeerId(socket.id);
             console.log('[CLIENT] 소켓 연결 성공:', socket.id);
 
-            // 방에 참여
+            // 방 참여 및 초기화
             socket.emit('join-room', roomId);
 
             if (!queryParams.get('room')) {
@@ -38,8 +38,28 @@ function ScreenShare() {
             }
         });
 
+        socket.on('signal', (data) => {
+            console.log('[CLIENT] 신호 수신:', data);
+            peerRef.current?.signal(data.signal);
+        });
+
+        socket.on('sharing-started', ({ sharer }) => {
+            console.log('[CLIENT] 화면 공유 시작 알림 수신:', sharer);
+        });
+
+        socket.on('sharing-stopped', () => {
+            console.log('[CLIENT] 화면 공유 중단 알림 수신');
+        });
+
+        socket.on('connect_error', (error) => {
+            console.error('[CLIENT] 소켓 연결 오류:', error);
+        });
+
         return () => {
             socket.off('connect');
+            socket.off('signal');
+            socket.off('sharing-started');
+            socket.off('sharing-stopped');
         };
     }, []);
 
@@ -54,8 +74,8 @@ function ScreenShare() {
             socket.emit('signal', { to: roomId, signal });
             console.log('signal 이벤트 전송:', { to: roomId, signal });
         });
-
         peer.on('stream', (stream) => {
+            console.log('[CLIENT] 스트림 수신:', stream);
             if (remoteVideoRef.current) {
                 remoteVideoRef.current.srcObject = stream;
             }
