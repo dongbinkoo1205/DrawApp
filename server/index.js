@@ -23,12 +23,19 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
     console.log('사용자 연결됨:', socket.id);
 
+    // 'signal' 이벤트 처리
     socket.on('signal', (data) => {
+        console.log(`신호 데이터 수신 from ${socket.id} -> to ${data.to}`);
         io.to(data.to).emit('signal', { from: socket.id, signal: data.signal });
     });
 
     socket.on('chat-message', (message) => {
         io.emit('chat-message', message);
+    });
+
+    // 화면 공유 시작 이벤트 처리
+    socket.on('start-sharing', () => {
+        console.log(`${socket.id}가 화면 공유를 시작했습니다.`);
     });
 
     socket.on('disconnect', () => {

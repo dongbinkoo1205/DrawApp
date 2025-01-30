@@ -21,7 +21,7 @@ function ScreenShare() {
         socket.on('connect', () => {
             setPeerId(socket.id);
             const queryParams = new URLSearchParams(window.location.search);
-
+            console.log('소켓 연결 성공:', socket.id);
             if (!queryParams.get('room')) {
                 window.history.replaceState(null, '', `?room=${socket.id}`);
                 setIsInitiator(true);
@@ -32,6 +32,7 @@ function ScreenShare() {
 
         socket.on('signal', (data) => {
             peerRef.current?.signal(data.signal);
+            console.log('신호 데이터 수신:', data);
         });
 
         socket.on('sharing-status', (status) => {
@@ -39,6 +40,9 @@ function ScreenShare() {
                 alert('다른 사용자가 이미 화면을 공유하고 있습니다.');
                 setIsSharing(false);
             }
+        });
+        socket.on('connect_error', (error) => {
+            console.error('소켓 연결 오류:', error);
         });
 
         return () => {
@@ -63,6 +67,13 @@ function ScreenShare() {
             if (remoteVideoRef.current) {
                 remoteVideoRef.current.srcObject = stream;
             }
+        });
+        peer.on('connect', () => {
+            console.log('P2P 연결 성공');
+        });
+
+        peer.on('error', (err) => {
+            console.error('P2P 연결 오류:', err);
         });
 
         peerRef.current = peer;
