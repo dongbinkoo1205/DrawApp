@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Buffer } from 'buffer';
 import io from 'socket.io-client';
-import SimplePeer from 'simple-peer/simplepeer.min.js';
+import SimplePeer from 'simple-peer';
 import DrawingCanvas from './DrawCanvas';
 import ChatBox from './ChatBox';
 
@@ -12,7 +12,7 @@ const socket = io('https://drawapp-ne15.onrender.com', {
     path: '/socket.io/',
 });
 
-const turnServers = [
+const iceServers = [
     {
         urls: 'stun:stun.relay.metered.ca:80',
     },
@@ -22,7 +22,17 @@ const turnServers = [
         credential: 'CgDOWoNDYeHJSP/f',
     },
     {
+        urls: 'turn:global.relay.metered.ca:80?transport=tcp',
+        username: '0e7b1f0cd385987cbf443ba6',
+        credential: 'CgDOWoNDYeHJSP/f',
+    },
+    {
         urls: 'turn:global.relay.metered.ca:443',
+        username: '0e7b1f0cd385987cbf443ba6',
+        credential: 'CgDOWoNDYeHJSP/f',
+    },
+    {
+        urls: 'turns:global.relay.metered.ca:443?transport=tcp',
         username: '0e7b1f0cd385987cbf443ba6',
         credential: 'CgDOWoNDYeHJSP/f',
     },
@@ -35,9 +45,8 @@ function ScreenShare() {
     const videoRef = useRef();
     const remoteVideoRef = useRef();
     const peerRef = useRef();
-    useEffect(() => {
-        if (socket.connected) return; // 중복 소켓 연결 방지
 
+    useEffect(() => {
         socket.on('connect', () => {
             setPeerId(socket.id);
             const queryParams = new URLSearchParams(window.location.search);
@@ -51,28 +60,16 @@ function ScreenShare() {
                 setIsInitiator(true);
             }
 
-            initiatePeerConnection(roomId); // 단순화된 Peer 연결 함수 호출
+            initiatePeerConnection(roomId);
         });
 
-        // 나머지 이벤트 핸들러들 유지
-    }, []);
-
-    useEffect(() => {
         socket.on('signal', (data) => {
             console.log('[CLIENT] 신호 수신:', data);
-            if (peerRef.current) {
-                peerRef.current.signal(data.signal);
-            } else {
-                console.error('[CLIENT] Peer 객체가 존재하지 않음.');
-            }
+            peerRef.current?.signal(data.signal);
         });
 
         socket.on('sharing-started', ({ sharer }) => {
             console.log('[CLIENT] 화면 공유 시작 알림 수신:', sharer);
-        });
-
-        socket.on('connect_error', (error) => {
-            console.error('[CLIENT] 소켓 연결 오류:', error);
         });
 
         return () => {
@@ -83,15 +80,11 @@ function ScreenShare() {
     }, []);
 
     const initiatePeerConnection = (roomId) => {
-        if (peerRef.current) {
-            peerRef.current.destroy();
-        }
-
         const peer = new SimplePeer({
             initiator: isInitiator,
             trickle: true,
             config: {
-                iceServers: turnServers,
+                iceServers: iceServers,
                 iceTransportPolicy: 'all',
             },
         });
@@ -101,15 +94,15 @@ function ScreenShare() {
             socket.emit('signal', { to: roomId, signal });
         });
 
-        peer.on('connect', () => {
-            console.log('[CLIENT] P2P 연결 성공');
-        });
-
         peer.on('stream', (stream) => {
-            console.log('[CLIENT] 스트림 수신:', stream);
+            console.log('[CLIENT] 원격 스트림 수신:', stream);
             if (remoteVideoRef.current) {
                 remoteVideoRef.current.srcObject = stream;
             }
+        });
+
+        peer.on('connect', () => {
+            console.log('[CLIENT] P2P 연결 성공');
         });
 
         peer.on('error', (err) => {
