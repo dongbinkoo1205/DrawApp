@@ -6,44 +6,33 @@ const app = express();
 const server = http.createServer(app);
 
 const PORT = process.env.PORT || 8080;
+
 const io = new Server(server, {
     cors: {
         origin: '*',
         methods: ['GET', 'POST'],
+        credentials: true,
     },
+    path: '/socket.io/', // 경로 설정
 });
 
-let currentSharer = null; // 현재 화면 공유 사용자
+app.get('/', (req, res) => {
+    res.send('Signaling 서버가 정상적으로 작동 중입니다.');
+});
 
 io.on('connection', (socket) => {
     console.log('사용자 연결됨:', socket.id);
-
-    socket.on('start-sharing', () => {
-        if (currentSharer) {
-            socket.emit('sharing-status', false); // 공유 거부
-        } else {
-            currentSharer = socket.id;
-            io.emit('sharing-status', true); // 공유 승인
-        }
-    });
-
-    socket.on('stop-sharing', () => {
-        if (socket.id === currentSharer) {
-            currentSharer = null;
-            io.emit('sharing-status', true); // 다른 사용자가 공유 가능
-        }
-    });
 
     socket.on('signal', (data) => {
         io.to(data.to).emit('signal', { from: socket.id, signal: data.signal });
     });
 
+    socket.on('chat-message', (message) => {
+        io.emit('chat-message', message);
+    });
+
     socket.on('disconnect', () => {
         console.log('사용자 연결 종료:', socket.id);
-        if (socket.id === currentSharer) {
-            currentSharer = null;
-            io.emit('sharing-status', true);
-        }
     });
 });
 
