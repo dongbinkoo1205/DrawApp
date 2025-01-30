@@ -67,8 +67,14 @@ function ScreenShare() {
             trickle: true,
             config: {
                 iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' }, // STUN 서버만 사용
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    {
+                        urls: 'turn:relay.metered.ca:80',
+                        credential: 'public',
+                        username: 'public',
+                    },
                 ],
+                iceTransportPolicy: 'relay', // TURN 서버 강제 사용
             },
         });
 
