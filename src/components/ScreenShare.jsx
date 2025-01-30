@@ -1,10 +1,11 @@
 // components/ScreenShare.jsx
 import React, { useEffect, useRef, useState } from 'react';
+import { Buffer } from 'buffer';
 import io from 'socket.io-client';
-import SimplePeer from 'simple-peer';
+import SimplePeer from 'simple-peer/simplepeer.min.js';
 import DrawingCanvas from './DrawCanvas';
 import ChatBox from './ChatBox';
-
+window.Buffer = Buffer; // 브라우저 환경에 Buffer 전역 객체 설정
 const socket = io('https://drawapp-ne15.onrender.com', {
     transports: ['websocket'],
     path: '/socket.io/', // 서버와 경로 일치시킴

@@ -11,6 +11,7 @@ export default defineConfig({
         alias: {
             '@': '/src',
             stream: 'stream-browserify',
+            buffer: 'buffer',
         },
     },
     build: {
@@ -35,6 +36,7 @@ export default defineConfig({
     },
     define: {
         'process.env': {},
+        global: 'window',
     },
     server: {
         port: 5173,
