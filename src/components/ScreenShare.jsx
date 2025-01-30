@@ -1,18 +1,19 @@
 // components/ScreenShare.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
-import SimplePeer from 'simple-peer/simplepeer.min.js';
+import SimplePeer from 'simple-peer';
 import DrawingCanvas from './DrawCanvas';
 import ChatBox from './ChatBox';
 
 const socket = io('https://drawapp-ne15.onrender.com', {
     transports: ['websocket'],
+    path: '/socket.io/', // 서버와 경로 일치시킴
 });
 
 function ScreenShare() {
     const [peerId, setPeerId] = useState('');
     const [isInitiator, setIsInitiator] = useState(false);
-    const [isSharing, setIsSharing] = useState(false); // 화면 공유 상태 관리
+    const [isSharing, setIsSharing] = useState(false);
     const videoRef = useRef();
     const remoteVideoRef = useRef();
     const peerRef = useRef();
@@ -22,6 +23,7 @@ function ScreenShare() {
             setPeerId(socket.id);
             const queryParams = new URLSearchParams(window.location.search);
             console.log('소켓 연결 성공:', socket.id);
+
             if (!queryParams.get('room')) {
                 window.history.replaceState(null, '', `?room=${socket.id}`);
                 setIsInitiator(true);
@@ -41,6 +43,7 @@ function ScreenShare() {
                 setIsSharing(false);
             }
         });
+
         socket.on('connect_error', (error) => {
             console.error('소켓 연결 오류:', error);
         });
@@ -68,6 +71,7 @@ function ScreenShare() {
                 remoteVideoRef.current.srcObject = stream;
             }
         });
+
         peer.on('connect', () => {
             console.log('P2P 연결 성공');
         });
@@ -89,7 +93,7 @@ function ScreenShare() {
         videoRef.current.srcObject = stream;
         setIsSharing(true);
 
-        socket.emit('start-sharing', peerId); // 서버에 화면 공유 시작 알림
+        socket.emit('start-sharing', peerId);
 
         if (peerRef.current) {
             peerRef.current.addStream(stream);
@@ -97,7 +101,7 @@ function ScreenShare() {
 
         stream.getVideoTracks()[0].onended = () => {
             setIsSharing(false);
-            socket.emit('stop-sharing'); // 화면 공유 중단 알림
+            socket.emit('stop-sharing');
         };
     };
 
