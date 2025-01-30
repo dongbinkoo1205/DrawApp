@@ -61,22 +61,19 @@ function ScreenShare() {
     const initiatePeerConnection = (roomId) => {
         const peer = new SimplePeer({
             initiator: isInitiator,
-            trickle: true, // 실시간으로 ICE 후보 교환 활성화
+            trickle: true,
             config: {
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
-                    {
-                        urls: 'turn:numb.viagenie.ca',
-                        credential: 'webrtc',
-                        username: 'websitebeaver@mail.com',
-                    },
+                    { urls: 'turn:relay.metered.ca:80', credential: 'public', username: 'public' },
                 ],
+                iceTransportPolicy: 'relay', // TURN 서버를 강제 사용하도록 설정
             },
-            stream: null, // 화면 공유 스트림은 나중에 추가
+            stream: null,
         });
 
         peer.on('signal', (signal) => {
-            console.log('[CLIENT] 신호 전송:', { to: roomId, signal });
+            console.log('[DEBUG] 신호 생성:', signal);
             socket.emit('signal', { to: roomId, signal });
         });
 
@@ -96,7 +93,8 @@ function ScreenShare() {
         });
 
         peer.on('iceCandidate', (candidate) => {
-            console.log('ICE 후보 전송:', candidate);
+            console.log('[CLIENT] ICE 후보 생성:', candidate);
+            socket.emit('signal', { to: roomId, signal: { candidate } });
         });
 
         peerRef.current = peer;
