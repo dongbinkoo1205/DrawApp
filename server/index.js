@@ -1,10 +1,13 @@
-// server.js
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
+
+// ✅ 포트를 환경 변수로부터 가져옵니다.
+const PORT = process.env.PORT || 5000;
+
 const io = new Server(server, {
     cors: {
         origin: '*',
@@ -20,7 +23,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('chat-message', (message) => {
-        io.emit('chat-message', message); // 메시지 브로드캐스트
+        io.emit('chat-message', message);
     });
 
     socket.on('disconnect', () => {
@@ -28,6 +31,7 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(5000, () => {
-    console.log('Signaling 서버가 5000번 포트에서 실행 중...');
+// ✅ PORT 환경 변수를 사용하여 서버 시작
+server.listen(PORT, () => {
+    console.log(`Signaling 서버가 ${PORT}번 포트에서 실행 중...`);
 });
