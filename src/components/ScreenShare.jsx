@@ -11,6 +11,7 @@ const socket = io('https://drawapp-ne15.onrender.com', {
     transports: ['websocket'],
     path: '/socket.io/',
 });
+
 const turnServers = [
     {
         urls: 'stun:stun.relay.metered.ca:80',
@@ -41,17 +42,7 @@ const turnServers = [
         credential: 'gqBMF/Igc81vlkJN',
     },
     {
-        urls: 'turn:global.relay.metered.ca:80?transport=tcp',
-        username: '343eb39487289852d9d44d25',
-        credential: 'gqBMF/Igc81vlkJN',
-    },
-    {
         urls: 'turn:global.relay.metered.ca:443',
-        username: '343eb39487289852d9d44d25',
-        credential: 'gqBMF/Igc81vlkJN',
-    },
-    {
-        urls: 'turns:global.relay.metered.ca:443?transport=tcp',
         username: '343eb39487289852d9d44d25',
         credential: 'gqBMF/Igc81vlkJN',
     },
@@ -110,6 +101,10 @@ function ScreenShare() {
         for (let i = 0; i < turnServers.length; i++) {
             console.log(`[DEBUG] 시도 중인 TURN 서버: ${turnServers[i].urls}`);
 
+            if (peerRef.current) {
+                peerRef.current.destroy();
+            }
+
             const peer = new SimplePeer({
                 initiator: isInitiator,
                 trickle: true,
@@ -129,7 +124,8 @@ function ScreenShare() {
 
             let candidateFound = false;
 
-            peer.on('iceCandidate', (candidate) => {
+            // 이벤트 이름을 ice로 수정
+            peer.on('ice', (candidate) => {
                 if (candidate) {
                     console.log('[CLIENT] ICE 후보 생성:', candidate);
                     candidateFound = true;
@@ -149,12 +145,11 @@ function ScreenShare() {
 
             peerRef.current = peer;
 
-            // 일정 시간 동안 ICE 후보가 생성되지 않으면 다음 서버로 시도
-            await new Promise((resolve) => setTimeout(resolve, 5000));
+            await new Promise((resolve) => setTimeout(resolve, 10000)); // 대기 시간 10초로 증가
 
             if (candidateFound) {
                 console.log(`[INFO] 성공적인 TURN 서버: ${turnServers[i].urls}`);
-                return; // ICE 후보가 생성되면 더 이상 다른 서버로 시도하지 않음
+                return;
             } else {
                 console.warn(`[WARN] TURN 서버 실패: ${turnServers[i].urls}`);
                 peer.destroy();
