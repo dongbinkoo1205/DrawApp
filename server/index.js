@@ -1,11 +1,13 @@
 const express = require('express');
+const { ExpressPeerServer } = require('peer');
 const http = require('http');
-const { Server } = require('socket.io');
 const cors = require('cors');
 
+// Express 앱 생성
 const app = express();
 const server = http.createServer(app);
 
+// CORS 설정
 app.use(
     cors({
         origin: 'https://drawapp-five.vercel.app',
@@ -14,53 +16,22 @@ app.use(
     })
 );
 
-const io = new Server(server, {
-    cors: {
-        origin: 'https://drawapp-five.vercel.app',
-        methods: ['GET', 'POST'],
-        credentials: true,
-    },
+// PeerJS 서버 설정 및 Express에 통합
+const peerServer = ExpressPeerServer(server, {
+    debug: true,
+    allow_discovery: true,
 });
 
-io.on('connection', (socket) => {
-    console.log('WebSocket connected:', socket.id);
+app.use('/peerjs', peerServer);
 
-    socket.on('start-broadcast', () => {
-        console.log('Broadcast started by:', socket.id);
-        socket.broadcast.emit('broadcaster', socket.id);
-    });
-
-    socket.on('offer', (data) => {
-        if (data.target) {
-            console.log(`Forwarding offer from ${socket.id} to ${data.target}`);
-            socket.to(data.target).emit('offer', { sender: socket.id, offer: data.offer });
-        } else {
-            console.error('Offer target is missing.');
-        }
-    });
-
-    socket.on('answer', (data) => {
-        if (data.target) {
-            console.log(`Forwarding answer from ${socket.id} to ${data.target}`);
-            socket.to(data.target).emit('answer', { sender: socket.id, answer: data.answer });
-        } else {
-            console.error('Answer target is missing.');
-        }
-    });
-
-    socket.on('ice-candidate', (data) => {
-        if (data.target) {
-            console.log(`Forwarding ICE candidate from ${socket.id} to ${data.target}`);
-            socket.to(data.target).emit('ice-candidate', { candidate: data.candidate });
-        } else {
-            console.error('ICE candidate target is missing.');
-        }
-    });
-
-    socket.on('disconnect', () => {
-        console.log('WebSocket disconnected:', socket.id);
-    });
+peerServer.on('connection', (client) => {
+    console.log('Peer connected:', client.id);
 });
 
+peerServer.on('disconnect', (client) => {
+    console.log('Peer disconnected:', client.id);
+});
+
+// 서버 시작
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
