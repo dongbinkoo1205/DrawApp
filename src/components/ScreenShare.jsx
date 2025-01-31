@@ -39,7 +39,7 @@ export default function ScreenShare() {
             const peer = new Peer({
                 host: 'drawapp-ne15.onrender.com',
                 port: 443,
-                path: '/peerjs',
+                path: '/',
                 secure: true,
                 config: { iceServers },
             });
