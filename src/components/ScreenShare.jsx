@@ -1,14 +1,15 @@
+// ScreenShare.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:3000');
+const socket = io('https://drawapp-ne15.onrender.com');
 const iceServers = [
     { urls: 'stun:stun.relay.metered.ca:80' },
     { urls: 'turn:global.relay.metered.ca:80', username: '0e7b1f0cd385987cbf443ba6', credential: 'CgDOWoNDYeHJSP/f' },
     { urls: 'turn:global.relay.metered.ca:443', username: '0e7b1f0cd385987cbf443ba6', credential: 'CgDOWoNDYeHJSP/f' },
 ];
 
-const App = () => {
+const ScreenShare = () => {
     const [isSharing, setIsSharing] = useState(false);
     const [messages, setMessages] = useState([]);
     const videoRef = useRef(null);
@@ -102,23 +103,31 @@ const App = () => {
     };
 
     return (
-        <div className="app">
-            <video ref={videoRef} autoPlay playsInline style={{ width: '100%', height: 'auto' }}></video>
-            <button onClick={isSharing ? stopScreenShare : startScreenShare}>
+        <div className="h-full flex flex-col">
+            <video ref={videoRef} autoPlay playsInline className="w-full h-3/4 bg-black rounded"></video>
+            <button
+                onClick={isSharing ? stopScreenShare : startScreenShare}
+                className="mt-4 px-4 py-2 bg-green-500 text-white rounded self-center"
+            >
                 {isSharing ? 'Stop Sharing' : 'Start Sharing'}
             </button>
-            <div className="chat">
-                <ul>
+            <div className="flex-1 bg-white shadow rounded mt-4 overflow-auto">
+                <ul className="p-4 space-y-2">
                     {messages.map((msg, index) => (
-                        <li key={index}>
+                        <li key={index} className="bg-gray-200 p-2 rounded">
                             {msg.id}: {msg.message}
                         </li>
                     ))}
                 </ul>
-                <input type="text" onKeyDown={(e) => e.key === 'Enter' && sendMessage(e.target.value)} />
+                <input
+                    type="text"
+                    className="p-2 border rounded w-full"
+                    placeholder="Type a message..."
+                    onKeyDown={(e) => e.key === 'Enter' && sendMessage(e.target.value)}
+                />
             </div>
         </div>
     );
 };
 
-export default App;
+export default ScreenShare;

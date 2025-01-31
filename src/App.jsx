@@ -1,78 +1,30 @@
-import React, { useEffect, useState } from 'react';
-import io from 'socket.io-client';
+// App.jsx
+import React from 'react';
 import ScreenShare from './components/ScreenShare';
+import './index.css'; // Import Tailwind CSS
 
-const socket = io('https://drawapp-ne15.onrender.com', {
-    transports: ['websocket'], // WebSocket만 사용하도록 설정
-    reconnectionAttempts: 5, // 재연결 시도 횟수
-    timeout: 10000, // 연결 타임아웃 설정 (10초)
-});
-
-export default function App() {
-    const [messages, setMessages] = useState([]);
-    const [inputMessage, setInputMessage] = useState('');
-
-    // 메시지 수신 이벤트 핸들링
-    useEffect(() => {
-        socket.on('receive-message', (message) => {
-            setMessages((prevMessages) => [...prevMessages, message]);
-        });
-    }, []);
-
-    const sendMessage = () => {
-        if (inputMessage.trim()) {
-            socket.emit('send-message', inputMessage);
-            setInputMessage('');
-        }
-    };
-
+const App = () => {
     return (
-        <div className="h-screen flex flex-col bg-gray-100 text-gray-900">
-            <header className="flex items-center justify-between p-4 bg-blue-600 text-white">
-                <h1 className="text-lg font-bold">Real-Time Collaboration Tool</h1>
-            </header>
-
-            <div className="flex flex-1 overflow-hidden">
-                <aside className="w-64 bg-white border-r p-4">
-                    <h2 className="font-bold text-xl">Channels</h2>
-                    <ul className="mt-4 space-y-2">
-                        <li className="p-2 rounded-lg bg-gray-200"># General</li>
-                        <li className="p-2 rounded-lg hover:bg-gray-200"># Tech Support</li>
-                        <li className="p-2 rounded-lg hover:bg-gray-200"># Random</li>
-                    </ul>
-                </aside>
-
-                <main className="flex-1 flex flex-col">
-                    <ScreenShare socket={socket} />
-
-                    <div className="flex-1 flex flex-col p-4 bg-white">
-                        <h2 className="font-bold text-lg mb-4">Chat</h2>
-                        <div className="flex-1 overflow-y-auto border rounded-lg p-4 space-y-4">
-                            {messages.map((msg, index) => (
-                                <div key={index} className="p-2 bg-gray-100 rounded-lg">
-                                    {msg}
-                                </div>
-                            ))}
-                        </div>
-                        <div className="mt-4 flex items-center">
-                            <input
-                                type="text"
-                                placeholder="Type a message"
-                                value={inputMessage}
-                                onChange={(e) => setInputMessage(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                                className="flex-1 border rounded-lg p-2 mr-2"
-                            />
-                            <button
-                                onClick={sendMessage}
-                                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-                            >
-                                Send
-                            </button>
-                        </div>
-                    </div>
-                </main>
-            </div>
+        <div className="flex h-screen">
+            <aside className="w-1/4 bg-gray-800 text-white p-4">
+                <h1 className="text-xl font-bold mb-4">Team Workspace</h1>
+                <ul className="space-y-2">
+                    <li className="p-2 bg-gray-700 rounded cursor-pointer">Channel 1</li>
+                    <li className="p-2 bg-gray-700 rounded cursor-pointer">Channel 2</li>
+                    <li className="p-2 bg-gray-700 rounded cursor-pointer">Direct Messages</li>
+                </ul>
+            </aside>
+            <main className="flex-1 flex flex-col bg-gray-100">
+                <header className="p-4 bg-white shadow-md flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">Current Channel</h2>
+                    <button className="px-4 py-2 bg-blue-500 text-white rounded">Logout</button>
+                </header>
+                <div className="flex-1 p-4 overflow-auto">
+                    <ScreenShare />
+                </div>
+            </main>
         </div>
     );
-}
+};
+
+export default App;
