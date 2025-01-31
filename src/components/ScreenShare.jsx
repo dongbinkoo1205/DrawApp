@@ -1,3 +1,4 @@
+// ScreenShare.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 
@@ -10,7 +11,9 @@ const iceServers = [
 
 const ScreenShare = () => {
     const [isSharing, setIsSharing] = useState(false);
+    const [isRemoteSharing, setIsRemoteSharing] = useState(false);
     const [messages, setMessages] = useState([]);
+    const [errorMessage, setErrorMessage] = useState('');
     const videoRef = useRef(null);
     const peerConnection = useRef(null);
     const localStream = useRef(null);
@@ -25,6 +28,11 @@ const ScreenShare = () => {
             setMessages((prev) => [...prev, data]);
         });
 
+        socket.on('error', (message) => {
+            setErrorMessage(message);
+            console.error('Error from server:', message);
+        });
+
         return () => {
             socket.off('screen-share-started');
             socket.off('screen-share-stopped');
@@ -32,11 +40,17 @@ const ScreenShare = () => {
             socket.off('answer');
             socket.off('ice-candidate');
             socket.off('chat-message');
+            socket.off('error');
         };
     }, []);
 
     const startScreenShare = async () => {
         try {
+            if (isRemoteSharing) {
+                alert('Screen sharing is already active on another device.');
+                return;
+            }
+
             localStream.current = await navigator.mediaDevices.getDisplayMedia({ video: true });
             videoRef.current.srcObject = localStream.current;
 
@@ -71,10 +85,15 @@ const ScreenShare = () => {
 
     const handleRemoteScreenShare = (sharerId) => {
         console.log('Screen share started by:', sharerId);
+        setIsRemoteSharing(true);
     };
 
     const stopRemoteScreenShare = () => {
         console.log('Remote screen share stopped');
+        setIsRemoteSharing(false);
+        if (videoRef.current.srcObject) {
+            videoRef.current.srcObject = null;
+        }
     };
 
     const handleOffer = async (offer) => {
@@ -110,6 +129,7 @@ const ScreenShare = () => {
             >
                 {isSharing ? 'Stop Sharing' : 'Start Sharing'}
             </button>
+            {errorMessage && <p className="text-red-500">{errorMessage}</p>}
             <div className="flex-1 bg-white shadow rounded mt-4 overflow-auto">
                 <ul className="p-4 space-y-2">
                     {messages.map((msg, index) => (
