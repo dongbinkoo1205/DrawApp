@@ -2,7 +2,10 @@ import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import ScreenShare from './components/ScreenShare';
 
-const socket = io('https://drawapp-ne15.onrender.com');
+const socket = io('https://drawapp-ne15.onrender.com', {
+    transports: ['websocket'],  // 폴링 대신 WebSocket만 사용
+});
+
 
 export default function App() {
     const [messages, setMessages] = useState([]);
