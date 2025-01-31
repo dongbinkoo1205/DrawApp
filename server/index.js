@@ -35,12 +35,12 @@ io.on('connection', (socket) => {
     });
 
     socket.on('offer', (data) => {
-        if (!data.target || !data.offer) {
-            console.error('Invalid offer data:', data);
-            return;
-        }
         console.log(`Received offer from ${socket.id} to ${data.target}`);
-        socket.to(data.target).emit('offer', { sender: socket.id, offer: data.offer });
+        if (data.target) {
+            socket.to(data.target).emit('offer', { sender: socket.id, offer: data.offer });
+        } else {
+            console.error('Offer target is undefined. Skipping offer.');
+        }
     });
 
     socket.on('answer', (data) => {
@@ -53,14 +53,13 @@ io.on('connection', (socket) => {
     });
 
     socket.on('ice-candidate', (data) => {
-        if (!data.target || !data.candidate) {
-            console.error('Invalid ICE candidate data:', data);
-            return;
-        }
         console.log(`Received ICE candidate from ${socket.id} to ${data.target}`);
-        socket.to(data.target).emit('ice-candidate', { candidate: data.candidate });
+        if (data.target) {
+            socket.to(data.target).emit('ice-candidate', { candidate: data.candidate });
+        } else {
+            console.error('ICE candidate target is undefined. Skipping candidate.');
+        }
     });
-
     socket.on('disconnect', () => {
         console.log('WebSocket disconnected:', socket.id);
     });

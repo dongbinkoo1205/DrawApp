@@ -49,13 +49,16 @@ export default function ScreenShare({ socket }) {
         // Handle ICE candidates
         peerConnectionRef.current.onicecandidate = (event) => {
             if (event.candidate) {
-                console.log('Sending ICE candidate:', event.candidate);
+                console.log('Generated ICE candidate:', event.candidate);
                 if (broadcasterId) {
+                    console.log('Sending ICE candidate to:', broadcasterId);
                     socket.emit('ice-candidate', { target: broadcasterId, candidate: event.candidate });
                 } else {
                     console.warn('Broadcaster ID is not defined yet. Queuing ICE candidate.');
                     pendingCandidatesRef.current.push(event.candidate);
                 }
+            } else {
+                console.log('All ICE candidates have been generated.');
             }
         };
 
@@ -82,8 +85,9 @@ export default function ScreenShare({ socket }) {
             console.log('Received broadcaster ID:', id);
             setBroadcasterId(id);
 
+            // 즉시 대기 중인 ICE 후보 전송
             if (pendingCandidatesRef.current.length > 0) {
-                console.log('Sending queued ICE candidates...');
+                console.log('Sending queued ICE candidates to:', id);
                 pendingCandidatesRef.current.forEach((candidate) => {
                     socket.emit('ice-candidate', { target: id, candidate });
                 });
