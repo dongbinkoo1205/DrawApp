@@ -9,37 +9,18 @@ export default defineConfig({
     ],
     resolve: {
         alias: {
-            '@': '/src',
-            stream: 'stream-browserify',
-            buffer: 'buffer',
+            '@': '/src', // 절대 경로 설정 (유지)
         },
     },
     build: {
-        sourcemap: true, // 소스 맵 활성화
         target: 'esnext',
-        modulePreload: false,
-        rollupOptions: {
-            output: {
-                globals: {
-                    react: 'React',
-                    'react-dom': 'ReactDOM',
-                },
-            },
-        },
-    },
-    css: {
-        preprocessorOptions: {
-            css: {
-                importLoaders: 1,
-            },
-        },
+        sourcemap: true, // 소스 맵 활성화 (필요 없으면 제거)
     },
     define: {
-        'process.env': {},
-        global: 'window',
+        'process.env': {}, // 환경 변수 정의 (필요 없으면 제거 가능)
     },
     server: {
-        port: 5173,
-        strictPort: true,
+        port: 5173, // 개발 서버 포트
+        strictPort: true, // 포트 고정 (중요하지 않다면 제거 가능)
     },
 });
