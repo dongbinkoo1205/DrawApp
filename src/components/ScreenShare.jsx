@@ -1,7 +1,7 @@
 import Peer from 'peerjs';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-// 사용자 정의 TURN/STUN 서버 정보
+// 사용자 정의 STUN/TURN 서버 정보
 const iceServers = [
     {
         urls: 'stun:stun.relay.metered.ca:80',
@@ -20,20 +20,22 @@ export default function ScreenShare() {
     const remoteStreamRef = useRef(null);
     const peerRef = useRef(null);
 
+    // 화면 공유 시작 함수
     const startScreenShare = async () => {
         console.log('Starting screen share...');
 
         // Peer 연결 설정
         const peer = new Peer({
-            host: 'drawapp-ne15.onrender.com',
-            port: 8080,
+            host: 'drawapp-five.vercel.app', // Vercel 배포 URL
+            port: 443, // HTTPS 사용 시 포트 443
             path: '/peerjs',
-            secure: false, // 8080 포트로 HTTP 사용
-            config: { iceServers },
+            secure: true, // HTTPS 환경 설정
+            config: { iceServers }, // STUN/TURN 서버 설정
         });
 
         peerRef.current = peer;
 
+        // PeerJS 이벤트 처리
         peer.on('open', (id) => {
             console.log('PeerJS ID:', id);
             setPeerId(id);
@@ -42,16 +44,19 @@ export default function ScreenShare() {
         peer.on('call', (call) => {
             call.answer();
             call.on('stream', (remoteStream) => {
+                console.log('Received remote stream');
                 remoteStreamRef.current.srcObject = remoteStream;
             });
         });
 
+        // 화면 공유 미디어 스트림 가져오기
         const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
         localStreamRef.current.srcObject = stream;
 
         console.log('Local stream acquired. Waiting for remote peer...');
     };
 
+    // 원격 피어에 통화 요청 함수
     const makeCall = () => {
         if (!peerRef.current || !remotePeerId) return;
 
@@ -59,6 +64,7 @@ export default function ScreenShare() {
         const call = peerRef.current.call(remotePeerId, stream);
 
         call.on('stream', (remoteStream) => {
+            console.log('Received remote stream from peer');
             remoteStreamRef.current.srcObject = remoteStream;
         });
 
