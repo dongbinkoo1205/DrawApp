@@ -1,52 +1,60 @@
 const express = require('express');
-const { ExpressPeerServer } = require('peer');
 const http = require('http');
-const cors = require('cors');
-const path = require('path');
+const { Server } = require('socket.io');
 
-// Express 앱 생성
 const app = express();
 const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: '*' } });
 
-// CORS 설정
-app.use(
-    cors({
-        origin: 'https://drawapp-five.vercel.app', // 허용할 클라이언트 URL
-        methods: ['GET', 'POST'],
-        credentials: true,
-    })
-);
+let activeScreenSharer = null;
 
-// 정적 파일 제공 (React 앱의 build 폴더)
-app.use(express.static(path.join(__dirname, '../client/build')));
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
 
-// PeerJS 서버 설정 및 Express에 통합
-const peerServer = ExpressPeerServer(server, {
-    debug: true,
-    path: '/peerjs',
-    allow_discovery: true,
+    socket.on('start-screen-share', () => {
+        if (!activeScreenSharer) {
+            activeScreenSharer = socket.id;
+            socket.broadcast.emit('screen-share-started', socket.id);
+            console.log('Screen share started by:', socket.id);
+        } else {
+            socket.emit('error', 'Screen sharing is already active.');
+        }
+    });
+
+    socket.on('stop-screen-share', () => {
+        if (activeScreenSharer === socket.id) {
+            activeScreenSharer = null;
+            socket.broadcast.emit('screen-share-stopped');
+            console.log('Screen share stopped by:', socket.id);
+        }
+    });
+
+    socket.on('offer', (data) => {
+        socket.broadcast.emit('offer', data);
+    });
+
+    socket.on('answer', (data) => {
+        socket.broadcast.emit('answer', data);
+    });
+
+    socket.on('ice-candidate', (data) => {
+        socket.broadcast.emit('ice-candidate', data);
+    });
+
+    socket.on('chat-message', (message) => {
+        io.emit('chat-message', { id: socket.id, message });
+    });
+
+    socket.on('disconnect', () => {
+        if (activeScreenSharer === socket.id) {
+            activeScreenSharer = null;
+            io.emit('screen-share-stopped');
+            console.log('Screen share stopped due to disconnect:', socket.id);
+        }
+        console.log('User disconnected:', socket.id);
+    });
 });
 
-app.use('/peerjs', peerServer);
-
-// 기본 경로 응답
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build/index.html'));
+server.listen(8080, () => {
+    console.log('Server listening on port 8080');
 });
-
-// 기본 오류 처리
-app.use((req, res) => {
-    res.status(404).send('404: Page not found');
-});
-
-peerServer.on('connection', (client) => {
-    console.log('Peer connected:', client.id);
-});
-
-peerServer.on('disconnect', (client) => {
-    console.log('Peer disconnected:', client.id);
-});
-
-// 서버 시작
-const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
