@@ -3,11 +3,13 @@ import React, { useRef, useState } from 'react';
 
 // 사용자 정의 TURN/STUN 서버 정보
 const iceServers = [
-    { urls: 'stun:your-stun-server.com:3478' }, // 사용자 STUN 서버
     {
-        urls: 'turn:your-turn-server.com:3478', // 사용자 TURN 서버
-        username: 'your-username',
-        credential: 'your-credential',
+        urls: 'stun:stun.relay.metered.ca:80',
+    },
+    {
+        urls: 'turn:global.relay.metered.ca:80',
+        username: '0e7b1f0cd385987cbf443ba6',
+        credential: 'CgDOWoNDYeHJSP/f',
     },
 ];
 
