@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 const iceServers = [
     { urls: 'stun:stun.relay.metered.ca:80' },
     {
-        urls: 'turn:global.relay.metered.ca:443',
+        urls: 'turn:global.relay.metered.ca:443?transport=tcp',
         username: '0e7b1f0cd385987cbf443ba6',
         credential: 'CgDOWoNDYeHJSP/f',
     },
@@ -15,8 +15,8 @@ export default function ScreenShare({ socket }) {
     const remoteStreamRef = useRef(null);
     const peerConnectionRef = useRef(null);
 
-    // 화면 공유 시작
     const startScreenShare = async () => {
+        console.log('Starting screen share...');
         const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
         localStreamRef.current.srcObject = stream;
 
@@ -28,40 +28,52 @@ export default function ScreenShare({ socket }) {
 
         peerConnectionRef.current.onicecandidate = (event) => {
             if (event.candidate) {
+                console.log('Sending ICE candidate:', event.candidate);
                 socket.emit('ice-candidate', { candidate: event.candidate });
             }
         };
     };
 
-    // Signaling 이벤트 핸들링
     useEffect(() => {
         socket.on('broadcaster', (broadcasterId) => {
+            console.log('Received broadcaster ID:', broadcasterId);
             if (!isBroadcaster) {
                 joinBroadcast(broadcasterId);
             }
         });
 
         socket.on('offer', async (data) => {
+            console.log('Received offer:', data);
             if (peerConnectionRef.current) {
                 await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.offer));
                 const answer = await peerConnectionRef.current.createAnswer();
                 await peerConnectionRef.current.setLocalDescription(answer);
                 socket.emit('answer', { target: data.sender, answer });
+                console.log('Sent answer:', answer);
             }
         });
 
         socket.on('ice-candidate', (data) => {
+            console.log('Received ICE candidate:', data);
             if (peerConnectionRef.current) {
                 peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
             }
         });
+
+        return () => {
+            socket.off('broadcaster');
+            socket.off('offer');
+            socket.off('ice-candidate');
+        };
     }, [isBroadcaster, socket]);
 
     const joinBroadcast = async (broadcasterId) => {
+        console.log('Joining broadcast from:', broadcasterId);
         peerConnectionRef.current = new RTCPeerConnection({ iceServers });
 
         remoteStreamRef.current.srcObject = new MediaStream();
         peerConnectionRef.current.ontrack = (event) => {
+            console.log('Received remote track:', event);
             event.streams[0].getTracks().forEach((track) => {
                 remoteStreamRef.current.srcObject.addTrack(track);
             });
@@ -70,6 +82,7 @@ export default function ScreenShare({ socket }) {
         const offer = await peerConnectionRef.current.createOffer();
         await peerConnectionRef.current.setLocalDescription(offer);
         socket.emit('offer', { target: broadcasterId, offer });
+        console.log('Sent offer:', offer);
     };
 
     return (
