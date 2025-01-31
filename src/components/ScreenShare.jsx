@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 
 const socket = io('https://drawapp-ne15.onrender.com');
+
 const iceServers = [
     { urls: 'stun:stun.relay.metered.ca:80' },
     { urls: 'turn:global.relay.metered.ca:80', username: '0e7b1f0cd385987cbf443ba6', credential: 'CgDOWoNDYeHJSP/f' },
