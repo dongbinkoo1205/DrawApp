@@ -1,13 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const iceServers = [
-    { urls: 'stun:stun.l.google.com:19302' }, // Google STUN 서버
-    {
-        urls: 'turn:global.relay.metered.ca:443?transport=tcp', // TURN 서버 추가
-        username: '0e7b1f0cd385987cbf443ba6',
-        credential: 'CgDOWoNDYeHJSP/f',
-    },
-];
+// TURN 서버 정보를 API에서 가져오는 함수
+async function getTurnServerCredentials() {
+    try {
+        const response = await fetch(
+            'https://drawapp.metered.live/api/v1/turn/credentials?apiKey=cf0149014300f0ed0227a5c137636795ce6e'
+        );
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch TURN server credentials');
+        }
+
+        const iceServers = await response.json();
+        console.log('Fetched TURN server credentials:', iceServers);
+        return iceServers;
+    } catch (error) {
+        console.error('Error fetching TURN server credentials:', error);
+        return [{ urls: 'stun:stun.l.google.com:19302' }]; // 기본 STUN 서버 반환
+    }
+}
 
 export default function ScreenShare({ socket }) {
     const [isBroadcaster, setIsBroadcaster] = useState(false);
@@ -18,12 +29,17 @@ export default function ScreenShare({ socket }) {
     // Start screen sharing
     const startScreenShare = async () => {
         console.log('Starting screen share...');
+
+        // TURN 서버 정보 가져오기
+        const iceServers = await getTurnServerCredentials();
+
         const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
         localStreamRef.current.srcObject = stream;
 
         setIsBroadcaster(true);
         socket.emit('start-broadcast');
 
+        // PeerConnection 생성
         peerConnectionRef.current = new RTCPeerConnection({ iceServers });
 
         // Add tracks to PeerConnection
@@ -100,6 +116,10 @@ export default function ScreenShare({ socket }) {
 
     const joinBroadcast = async (broadcasterId) => {
         console.log('Joining broadcast from:', broadcasterId);
+
+        // TURN 서버 정보 가져오기
+        const iceServers = await getTurnServerCredentials();
+
         peerConnectionRef.current = new RTCPeerConnection({ iceServers });
 
         remoteStreamRef.current.srcObject = new MediaStream();
