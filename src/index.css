@@ -15,7 +15,12 @@
     font-style: normal;
     font-display: swap;
 }
-
+@font-face {
+    font-family: 'GongGothicMedium';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/GongGothicMedium.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
 /* Want to see How Elevate Experiences? */
 @font-face {
     font-family: 'MinSans-Regular';
@@ -72,7 +77,15 @@
     font-weight: normal;
     font-style: normal;
 }
-
+.hana{
+    font-family: 'Hana2-Bold';
+}
+/* 에스코어드림 폰트 */
+@font-face {
+    font-family: 'Hana2-Bold';
+    src: url('/src/public/Hana2-Bold.ttf') format('opentype');
+    font-weight: 700;
+}
 .Pretendard {
     font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Pretendard Variable', Pretendard, Roboto,
         'Noto Sans KR', 'Segoe UI', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',

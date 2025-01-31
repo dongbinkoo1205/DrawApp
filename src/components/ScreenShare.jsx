@@ -1,9 +1,10 @@
-// ScreenShare.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
+import Chat from './Chat'; // Chat 컴포넌트 가져오기
+import logo from '../assets/logo.png';
 
+// const socket = io('http://localhost:8080');
 const socket = io('https://drawapp-ne15.onrender.com');
-
 const iceServers = [
     { urls: 'stun:stun.relay.metered.ca:80' },
     { urls: 'turn:global.relay.metered.ca:80', username: '0e7b1f0cd385987cbf443ba6', credential: 'CgDOWoNDYeHJSP/f' },
@@ -23,6 +24,8 @@ const ScreenShare = () => {
         socket.on('offer', handleOffer);
         socket.on('answer', handleAnswer);
         socket.on('ice-candidate', handleIceCandidate);
+
+        // 채팅 메시지 수신 이벤트
         socket.on('chat-message', (data) => {
             setMessages((prev) => [...prev, data]);
         });
@@ -99,33 +102,75 @@ const ScreenShare = () => {
         peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
     };
 
+    // 메시지 전송 함수
     const sendMessage = (message) => {
-        socket.emit('chat-message', message);
+        socket.emit('chat-message', { id: socket.id, message });
     };
 
     return (
-        <div className="h-full flex flex-col">
-            <video ref={videoRef} autoPlay playsInline className="w-full h-3/4 bg-black rounded"></video>
-            <button
-                onClick={isSharing ? stopScreenShare : startScreenShare}
-                className="mt-4 px-4 py-2 bg-green-500 text-white rounded self-center"
-            >
-                {isSharing ? 'Stop Sharing' : 'Start Sharing'}
-            </button>
-            <div className="flex-1 bg-white shadow rounded mt-4 overflow-auto">
-                <ul className="p-4 space-y-2">
-                    {messages.map((msg, index) => (
-                        <li key={index} className="bg-gray-200 p-2 rounded">
-                            {msg.id}: {msg.message}
+        <div className="min-h-screen max-h-[100vh] flex flex-col p-4 bg-gray-900 text-white Pretendard">
+            {/* 헤더 영역 */}
+            <header className="h-[70px] p-4 bg-gray-800 shadow-lg flex items-center justify-between rounded-lg mb-4">
+                {/* 로고 이미지 */}
+                <div className="flex items-center gap-2">
+                    <img src={logo} alt="Logo" className="w-10 h-10 rounded-full object-contain" />
+                    <h2 className="text-2xl  text-white hana">LinkUp</h2>
+                </div>
+
+                {/* 버튼 */}
+                <button
+                    onClick={isSharing ? stopScreenShare : startScreenShare}
+                    className={
+                        isSharing
+                            ? 'px-5 py-2 bg-red-600 hover:bg-red-700 transition-colors text-white font-semibold rounded-lg'
+                            : 'px-5 py-2 bg-green-600 hover:bg-green-700 transition-colors text-white font-semibold rounded-lg'
+                    }
+                >
+                    {isSharing ? 'Stop Meeting' : 'Start Meeting'}
+                </button>
+            </header>
+
+            {/* 비디오와 채팅 영역 */}
+            <div className="flex flex-1 justify-between overflow-hidden gap-4">
+                {/* 비디오 영역 */}
+                <video
+                    style={{ height: 'calc(100vh - 70px)' }}
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    className="w-[78%] h-full bg-black rounded-lg shadow-lg"
+                ></video>
+
+                {/* Chat 컴포넌트 */}
+                <div className="bg-gray-800 shadow-lg rounded-lg p-4 w-[21%] flex flex-col">
+                    {/* Participants 영역 */}
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold">Participants (4)</h3>
+                        <span className="text-gray-400 text-sm">Viewers (10)</span>
+                    </div>
+                    <ul className="text-sm space-y-2 mb-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
+                        <li className="flex items-center gap-2 p-2 bg-gray-700 rounded-lg">
+                            <span className="w-8 h-8 rounded-full bg-gray-500"></span>
+                            <span className="flex-1 font-semibold text-white">Laura Williams</span>
+                            <span className="text-gray-400 text-xs">🔊</span>
                         </li>
-                    ))}
-                </ul>
-                <input
-                    type="text"
-                    className="p-2 border rounded w-full"
-                    placeholder="Type a message..."
-                    onKeyDown={(e) => e.key === 'Enter' && sendMessage(e.target.value)}
-                />
+                        <li className="flex items-center gap-2 p-2 bg-gray-700 rounded-lg">
+                            <span className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center font-bold text-white">
+                                NS
+                            </span>
+                            <span className="flex-1 font-semibold text-white">Nicholas Strattenberg</span>
+                        </li>
+                        <li className="flex items-center gap-2 p-2 bg-gray-700 rounded-lg">
+                            <span className="w-8 h-8 rounded-full bg-gray-500"></span>
+                            <span className="flex-1 font-semibold text-white">Jake Middlestone</span>
+                        </li>
+                        <li className="flex items-center gap-2 p-2 bg-gray-700 rounded-lg">
+                            <span className="w-8 h-8 rounded-full bg-gray-500"></span>
+                            <span className="flex-1 font-semibold text-white">Melissa Miles</span>
+                        </li>
+                    </ul>
+                    <Chat messages={messages} onSendMessage={sendMessage} />
+                </div>
             </div>
         </div>
     );
