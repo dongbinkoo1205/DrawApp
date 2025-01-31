@@ -26,6 +26,13 @@ const ScreenShare = () => {
             setMessages((prev) => [...prev, data]);
         });
 
+        socket.on('screen-share-started', (sharerId) => {
+            console.log('Existing screen share detected from:', sharerId);
+            if (!isSharing) {
+                startReceivingRemoteScreen(sharerId);
+            }
+        });
+
         return () => {
             socket.off('screen-share-started');
             socket.off('screen-share-stopped');
@@ -68,6 +75,28 @@ const ScreenShare = () => {
         peerConnection.current.close();
         socket.emit('stop-screen-share');
         setIsSharing(false);
+    };
+
+    const startReceivingRemoteScreen = async (sharerId) => {
+        peerConnection.current = new RTCPeerConnection({ iceServers });
+        peerConnection.current.ontrack = (event) => {
+            videoRef.current.srcObject = event.streams[0];
+        };
+
+        peerConnection.current.onicecandidate = (event) => {
+            if (event.candidate) {
+                socket.emit('ice-candidate', event.candidate);
+            }
+        };
+
+        console.log('Requesting offer from:', sharerId);
+        const offerRequest = await fetch(`/get-offer/${sharerId}`); // 예시 API 경로
+        const offer = await offerRequest.json();
+
+        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(offer));
+        const answer = await peerConnection.current.createAnswer();
+        await peerConnection.current.setLocalDescription(answer);
+        socket.emit('answer', answer);
     };
 
     const handleRemoteScreenShare = (sharerId) => {
