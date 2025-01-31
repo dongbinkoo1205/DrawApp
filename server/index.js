@@ -7,9 +7,11 @@ const { Server } = require('socket.io');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors: { origin: 'https://drawapp-ne15.onrender.com' },
-    methods: ['GET', 'POST'],
-    credentials: true,
+    cors: {
+        origin: '*', // 모든 출처 허용
+        methods: ['GET', 'POST'],
+        credentials: true, // 필요한 경우 쿠키, 인증 정보 사용 가능
+    },
 });
 
 let activeScreenSharer = null;
