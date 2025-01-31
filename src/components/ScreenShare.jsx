@@ -103,29 +103,85 @@ const ScreenShare = () => {
     };
 
     return (
-        <div className="h-full flex flex-col">
-            <video ref={videoRef} autoPlay playsInline className="w-full h-3/4 bg-black rounded"></video>
-            <button
-                onClick={isSharing ? stopScreenShare : startScreenShare}
-                className="mt-4 px-4 py-2 bg-green-500 text-white rounded self-center"
-            >
-                {isSharing ? 'Stop Sharing' : 'Start Sharing'}
-            </button>
-            <div className="flex-1 bg-white shadow rounded mt-4 overflow-auto">
-                <ul className="p-4 space-y-2">
-                    {messages.map((msg, index) => (
-                        <li key={index} className="bg-gray-200 p-2 rounded">
-                            {msg.id}: {msg.message}
+        // <div className="h-full flex flex-col">
+        //     <video ref={videoRef} autoPlay playsInline className="w-full h-3/4 bg-black rounded"></video>
+        //     <button
+        //         onClick={isSharing ? stopScreenShare : startScreenShare}
+        //         className="mt-4 px-4 py-2 bg-green-500 text-white rounded self-center"
+        //     >
+        //         {isSharing ? 'Stop Sharing' : 'Start Sharing'}
+        //     </button>
+        //     <div className="flex-1 bg-white shadow rounded mt-4 overflow-auto">
+        //         <ul className="p-4 space-y-2">
+        //             {messages.map((msg, index) => (
+        //                 <li key={index} className="bg-gray-200 p-2 rounded">
+        //                     {msg.id}: {msg.message}
+        //                 </li>
+        //             ))}
+        //         </ul>
+        //         <input
+        //             type="text"
+        //             className="p-2 border rounded w-full"
+        //             placeholder="Type a message..."
+        //             onKeyDown={(e) => e.key === 'Enter' && sendMessage(e.target.value)}
+        //         />
+        //     </div>
+        // </div>
+        <div className="flex-1 flex p-4 space-x-4 overflow-hidden">
+            {/* 비디오 화면 */}
+            <section className="flex-1 flex flex-col items-center bg-black rounded-lg p-4">
+                <video ref={videoRef} autoPlay playsInline className="w-full h-3/4 bg-black rounded mb-4"></video>
+                <button
+                    onClick={isSharing ? stopScreenShare : startScreenShare}
+                    className="px-4 py-2 bg-green-500 text-white rounded"
+                >
+                    {isSharing ? 'Stop Sharing' : 'Start Sharing'}
+                </button>
+            </section>
+
+            {/* 참가자 목록 및 채팅 */}
+            <aside className="w-1/3 flex flex-col space-y-4">
+                {/* 참가자 목록 */}
+                <div className="flex-1 bg-gray-800 rounded p-4 overflow-auto">
+                    <h3 className="text-lg font-bold mb-4">Participants (4)</h3>
+                    <ul className="space-y-2">
+                        <li className="flex items-center justify-between p-2 bg-gray-700 rounded">
+                            <span>Laura Williams</span>
+                            <span className="text-green-400">●</span>
                         </li>
-                    ))}
-                </ul>
-                <input
-                    type="text"
-                    className="p-2 border rounded w-full"
-                    placeholder="Type a message..."
-                    onKeyDown={(e) => e.key === 'Enter' && sendMessage(e.target.value)}
-                />
-            </div>
+                        <li className="flex items-center justify-between p-2 bg-gray-700 rounded">
+                            <span>Nicholas Strattenberg</span>
+                            <span className="text-red-400">●</span>
+                        </li>
+                        <li className="flex items-center justify-between p-2 bg-gray-700 rounded">
+                            <span>Jake Middlestone</span>
+                            <span className="text-green-400">●</span>
+                        </li>
+                        <li className="flex items-center justify-between p-2 bg-gray-700 rounded">
+                            <span>Melissa Miles</span>
+                            <span className="text-green-400">●</span>
+                        </li>
+                    </ul>
+                </div>
+
+                {/* 채팅 */}
+                <div className="flex-1 bg-gray-800 rounded p-4 overflow-auto">
+                    <h3 className="text-lg font-bold mb-4">Chat</h3>
+                    <ul className="space-y-2">
+                        {messages.map((msg, index) => (
+                            <li key={index} className="p-2 bg-gray-700 rounded">
+                                {msg.id}: {msg.message}
+                            </li>
+                        ))}
+                    </ul>
+                    <input
+                        type="text"
+                        className="mt-4 p-2 w-full bg-gray-700 text-white rounded"
+                        placeholder="Type a message..."
+                        onKeyDown={(e) => e.key === 'Enter' && sendMessage(e.target.value)}
+                    />
+                </div>
+            </aside>
         </div>
     );
 };
