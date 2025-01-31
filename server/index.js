@@ -1,38 +1,52 @@
 const express = require('express');
+const { ExpressPeerServer } = require('peer');
 const http = require('http');
 const cors = require('cors');
-const { Server } = require('socket.io');
+const path = require('path');
 
+// Express 앱 생성
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors({ origin: 'https://drawapp-five.vercel.app', methods: ['GET', 'POST'], credentials: true }));
-
-const io = new Server(server, {
-    cors: {
-        origin: 'https://drawapp-five.vercel.app',
+// CORS 설정
+app.use(
+    cors({
+        origin: 'https://drawapp-five.vercel.app', // 허용할 클라이언트 URL
         methods: ['GET', 'POST'],
         credentials: true,
-    },
+    })
+);
+
+// 정적 파일 제공 (React 앱의 build 폴더)
+app.use(express.static(path.join(__dirname, '../client/build')));
+
+// PeerJS 서버 설정 및 Express에 통합
+const peerServer = ExpressPeerServer(server, {
+    debug: true,
+    path: '/peerjs',
+    allow_discovery: true,
 });
 
-io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
+app.use('/peerjs', peerServer);
 
-    socket.on('start-share', () => {
-        console.log('Broadcast started by:', socket.id);
-        socket.broadcast.emit('broadcaster', socket.id);
-    });
-
-    socket.on('signal', (data) => {
-        console.log(`Signal from ${data.from} to ${data.to}`);
-        socket.to(data.to).emit('signal', data);
-    });
-
-    socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
-    });
+// 기본 경로 응답
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build/index.html'));
 });
 
+// 기본 오류 처리
+app.use((req, res) => {
+    res.status(404).send('404: Page not found');
+});
+
+peerServer.on('connection', (client) => {
+    console.log('Peer connected:', client.id);
+});
+
+peerServer.on('disconnect', (client) => {
+    console.log('Peer disconnected:', client.id);
+});
+
+// 서버 시작
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
