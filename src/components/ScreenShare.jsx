@@ -85,15 +85,6 @@ export default function ScreenShare({ socket }) {
             console.log('Received broadcaster ID:', id);
             setBroadcasterId(id);
 
-            // 즉시 대기 중인 ICE 후보 전송
-            if (pendingCandidatesRef.current.length > 0) {
-                console.log('Sending queued ICE candidates to:', id);
-                pendingCandidatesRef.current.forEach((candidate) => {
-                    socket.emit('ice-candidate', { target: id, candidate });
-                });
-                pendingCandidatesRef.current = [];
-            }
-
             if (!isBroadcaster) {
                 joinBroadcast(id);
             }
@@ -111,6 +102,15 @@ export default function ScreenShare({ socket }) {
         socket.on('answer', async (data) => {
             console.log('Received answer:', data);
             await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+
+            // 큐에 저장된 ICE Candidate 전송
+            if (pendingCandidatesRef.current.length > 0) {
+                console.log('Sending queued ICE candidates to:', broadcasterId);
+                pendingCandidatesRef.current.forEach((candidate) => {
+                    socket.emit('ice-candidate', { target: broadcasterId, candidate });
+                });
+                pendingCandidatesRef.current = [];
+            }
         });
 
         socket.on('ice-candidate', (data) => {
