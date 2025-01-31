@@ -1,4 +1,5 @@
 import Peer from 'peerjs';
+import React, { useRef, useState } from 'react';
 
 // TURN 서버 정보를 API에서 가져오는 함수
 async function getTurnServerCredentials() {
