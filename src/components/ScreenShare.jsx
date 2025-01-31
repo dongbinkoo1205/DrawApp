@@ -1,6 +1,7 @@
 // ScreenShare.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
+import logo from '../assets/logo.png';
 
 const socket = io('https://drawapp-ne15.onrender.com');
 const iceServers = [
