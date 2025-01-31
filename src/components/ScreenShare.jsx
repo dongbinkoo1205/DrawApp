@@ -1,9 +1,7 @@
+// ScreenShare.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
-import Chat from './Chat'; // Chat 컴포넌트 가져오기
-import logo from '../assets/logo.png';
 
-// const socket = io('http://localhost:8080');
 const socket = io('https://drawapp-ne15.onrender.com');
 const iceServers = [
     { urls: 'stun:stun.relay.metered.ca:80' },
@@ -24,8 +22,6 @@ const ScreenShare = () => {
         socket.on('offer', handleOffer);
         socket.on('answer', handleAnswer);
         socket.on('ice-candidate', handleIceCandidate);
-
-        // 채팅 메시지 수신 이벤트
         socket.on('chat-message', (data) => {
             setMessages((prev) => [...prev, data]);
         });
@@ -102,9 +98,8 @@ const ScreenShare = () => {
         peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
     };
 
-    // 메시지 전송 함수
     const sendMessage = (message) => {
-        socket.emit('chat-message', { id: socket.id, message });
+        socket.emit('chat-message', message);
     };
 
     return (

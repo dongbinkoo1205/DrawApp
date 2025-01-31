@@ -4,13 +4,7 @@ const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: 'https://drawapp-five.vercel.app',
-        methods: ['GET', 'POST'],
-        allowedHeaders: ['Content-Type'],
-    },
-});
+const io = new Server(server, { cors: { origin: '*' } });
 
 let activeScreenSharer = null;
 
@@ -49,11 +43,6 @@ io.on('connection', (socket) => {
     });
 });
 
-app.get('/health', (req, res) => {
-    res.status(200).send('OK');
-});
-
-const PORT = 8080; // 직접 포트를 지정
-server.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
+server.listen(8080, () => {
+    console.log('Server listening on port 8080');
 });
