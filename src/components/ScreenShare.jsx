@@ -22,6 +22,7 @@ async function getTurnServerCredentials() {
 
 export default function ScreenShare({ socket }) {
     const [isBroadcaster, setIsBroadcaster] = useState(false);
+    const [broadcasterId, setBroadcasterId] = useState(null); // Broadcaster ID 상태 추가
     const localStreamRef = useRef(null);
     const remoteStreamRef = useRef(null);
     const peerConnectionRef = useRef(null);
@@ -49,18 +50,14 @@ export default function ScreenShare({ socket }) {
         peerConnectionRef.current.onicecandidate = (event) => {
             if (event.candidate) {
                 console.log('Sending ICE candidate:', event.candidate);
-                socket.emit('ice-candidate', { target: broadcasterId, candidate: event.candidate });
+                if (broadcasterId) {
+                    socket.emit('ice-candidate', { target: broadcasterId, candidate: event.candidate });
+                } else {
+                    console.error('Broadcaster ID is not defined');
+                }
             }
         };
-        socket.on('offer', (data) => {
-            console.log('Received offer:', data);
-            // Offer 처리 코드
-        });
 
-        socket.on('answer', (data) => {
-            console.log('Received answer:', data);
-            // Answer 처리 코드
-        });
         // Handle negotiation needed event
         peerConnectionRef.current.onnegotiationneeded = async () => {
             console.log('Negotiation needed');
@@ -83,10 +80,11 @@ export default function ScreenShare({ socket }) {
 
     // Handle incoming signaling events
     useEffect(() => {
-        socket.on('broadcaster', (broadcasterId) => {
-            console.log('Received broadcaster ID:', broadcasterId);
+        socket.on('broadcaster', (id) => {
+            console.log('Received broadcaster ID:', id);
+            setBroadcasterId(id); // 상태에 Broadcaster ID 저장
             if (!isBroadcaster) {
-                joinBroadcast(broadcasterId);
+                joinBroadcast(id);
             }
         });
 
@@ -103,6 +101,7 @@ export default function ScreenShare({ socket }) {
             console.log('Received answer:', data);
             await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
         });
+
         socket.on('ice-candidate', (data) => {
             console.log('Received ICE candidate:', data);
             peerConnectionRef.current
@@ -119,8 +118,8 @@ export default function ScreenShare({ socket }) {
         };
     }, [isBroadcaster, socket]);
 
-    const joinBroadcast = async (broadcasterId) => {
-        console.log('Joining broadcast from:', broadcasterId);
+    const joinBroadcast = async (id) => {
+        console.log('Joining broadcast from:', id);
 
         // TURN 서버 정보 가져오기
         const iceServers = await getTurnServerCredentials();
