@@ -26,31 +26,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('offer', async (offer) => {
-        console.log('Received offer from:', socket.id);
-
-        // Broadcast the offer to all other clients
-        socket.broadcast.emit('offer', offer);
-
-        // If no other clients are connected, send a dummy answer to maintain ICE connection
-        if (io.engine.clientsCount === 1) {
-            console.log('No other clients available, sending dummy answer to:', socket.id);
-            const peerConnection = new RTCPeerConnection();
-            await peerConnection.setRemoteDescription(offer);
-            const answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
-            socket.emit('answer', answer);
-        }
-    });
-
-    socket.on('answer', (answer) => {
-        socket.broadcast.emit('answer', answer);
-    });
-
-    socket.on('ice-candidate', (candidate) => {
-        socket.broadcast.emit('ice-candidate', candidate);
-    });
-
     socket.on('stop-screen-share', () => {
         if (activeScreenSharer === socket.id) {
             activeScreenSharer = null;
