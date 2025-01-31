@@ -19,7 +19,7 @@ app.use(
 // PeerJS 서버 설정 및 Express에 통합
 const peerServer = ExpressPeerServer(server, {
     debug: true,
-    path: '/peer',
+    path: '/peerjs',
     allow_discovery: true,
 });
 

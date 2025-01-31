@@ -1,25 +1,15 @@
 import Peer from 'peerjs';
 import React, { useRef, useState } from 'react';
 
-// TURN 서버 정보를 API에서 가져오는 함수
-async function getTurnServerCredentials() {
-    try {
-        const response = await fetch(
-            'https://drawapp.metered.live/api/v1/turn/credentials?apiKey=cf0149014300f0ed0227a5c137636795ce6e'
-        );
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch TURN server credentials');
-        }
-
-        const iceServers = await response.json();
-        console.log('Fetched TURN server credentials:', iceServers);
-        return iceServers;
-    } catch (error) {
-        console.error('Error fetching TURN server credentials:', error);
-        return [{ urls: 'stun:stun.l.google.com:19302' }];
-    }
-}
+// 사용자 정의 TURN/STUN 서버 정보
+const iceServers = [
+    { urls: 'stun:your-stun-server.com:3478' }, // 사용자 STUN 서버
+    {
+        urls: 'turn:your-turn-server.com:3478', // 사용자 TURN 서버
+        username: 'your-username',
+        credential: 'your-credential',
+    },
+];
 
 export default function ScreenShare() {
     const [peerId, setPeerId] = useState(null);
@@ -31,15 +21,12 @@ export default function ScreenShare() {
     const startScreenShare = async () => {
         console.log('Starting screen share...');
 
-        // TURN 서버 정보 가져오기
-        const iceServers = await getTurnServerCredentials();
-
         // Peer 연결 설정
         const peer = new Peer({
             host: 'drawapp-ne15.onrender.com',
-            port: 443,
-            path: '/peerjs/peer',
-            secure: true,
+            port: 8080,
+            path: '/peerjs',
+            secure: false, // 8080 포트로 HTTP 사용
             config: { iceServers },
         });
 
