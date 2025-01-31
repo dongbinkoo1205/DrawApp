@@ -19,13 +19,12 @@ app.use(
 // PeerJS 서버 설정 및 Express에 통합
 const peerServer = ExpressPeerServer(server, {
     debug: true,
-    path: '/peer', // 경로 명확하게 지정
+    path: '/peer',
     allow_discovery: true,
 });
 
 app.use('/peerjs', peerServer);
 
-// PeerJS 이벤트 처리
 peerServer.on('connection', (client) => {
     console.log('Peer connected:', client.id);
 });

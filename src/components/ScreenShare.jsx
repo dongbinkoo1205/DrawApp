@@ -31,14 +31,15 @@ export default function ScreenShare() {
     const startScreenShare = async () => {
         console.log('Starting screen share...');
 
+        // TURN 서버 정보 가져오기
         const iceServers = await getTurnServerCredentials();
 
         // Peer 연결 설정
         const peer = new Peer({
             host: 'drawapp-ne15.onrender.com',
             port: 443,
-            path: '/peerjs/peer', // 경로 수정
-            secure: true, // HTTPS 및 WSS를 위한 설정
+            path: '/peerjs/peer',
+            secure: true,
             config: { iceServers },
         });
 
