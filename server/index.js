@@ -1,38 +1,38 @@
 const express = require('express');
-const { ExpressPeerServer } = require('peer');
 const http = require('http');
 const cors = require('cors');
+const { Server } = require('socket.io');
 
-// Express 앱 생성
 const app = express();
 const server = http.createServer(app);
 
-// CORS 설정
-app.use(
-    cors({
-        origin: ['https://drawapp-five.vercel.app'], // 정확한 Vercel URL 사용
+app.use(cors({ origin: 'https://drawapp-five.vercel.app', methods: ['GET', 'POST'], credentials: true }));
+
+const io = new Server(server, {
+    cors: {
+        origin: 'https://drawapp-five.vercel.app',
         methods: ['GET', 'POST'],
         credentials: true,
-    })
-);
-
-// PeerJS 서버 설정 및 Express에 통합
-const peerServer = ExpressPeerServer(server, {
-    debug: true,
-    path: '/peerjs',
-    allow_discovery: true,
+    },
 });
 
-app.use('/peerjs', peerServer);
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
 
-peerServer.on('connection', (client) => {
-    console.log('Peer connected:', client.id);
+    socket.on('start-share', () => {
+        console.log('Broadcast started by:', socket.id);
+        socket.broadcast.emit('broadcaster', socket.id);
+    });
+
+    socket.on('signal', (data) => {
+        console.log(`Signal from ${data.from} to ${data.to}`);
+        socket.to(data.to).emit('signal', data);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
 });
 
-peerServer.on('disconnect', (client) => {
-    console.log('Peer disconnected:', client.id);
-});
-
-// 서버 시작
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
