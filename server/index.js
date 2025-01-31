@@ -1,10 +1,16 @@
+require('dotenv').config();
+
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: 'https://drawapp-ne15.onrender.com' } });
+const io = new Server(server, {
+    cors: { origin: 'https://drawapp-ne15.onrender.com' },
+    methods: ['GET', 'POST'],
+    credentials: true,
+});
 
 let activeScreenSharer = null;
 
@@ -58,6 +64,8 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(8080, () => {
-    console.log('Server listening on port 8080');
+// 포트 설정 (Render에서는 PORT 환경변수가 자동으로 제공됨)
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
