@@ -1,4 +1,3 @@
-import React, { useEffect, useRef, useState } from 'react';
 import Peer from 'peerjs';
 
 // TURN 서버 정보를 API에서 가져오는 함수
@@ -28,76 +27,48 @@ export default function ScreenShare() {
     const remoteStreamRef = useRef(null);
     const peerRef = useRef(null);
 
-    // Start screen sharing
     const startScreenShare = async () => {
         console.log('Starting screen share...');
 
-        try {
-            const iceServers = await getTurnServerCredentials();
+        const iceServers = await getTurnServerCredentials();
 
-            // Peer 생성 및 연결
-            const peer = new Peer({
-                host: 'drawapp-ne15.onrender.com',
-                port: 443,
-                path: '/',
-                secure: true,
-                config: { iceServers },
+        // Peer 연결 설정
+        const peer = new Peer({
+            host: 'drawapp-ne15.onrender.com',
+            port: 443,
+            path: '/peerjs/peer', // 경로 수정
+            secure: true, // HTTPS 및 WSS를 위한 설정
+            config: { iceServers },
+        });
+
+        peerRef.current = peer;
+
+        peer.on('open', (id) => {
+            console.log('PeerJS ID:', id);
+            setPeerId(id);
+        });
+
+        peer.on('call', (call) => {
+            call.answer();
+            call.on('stream', (remoteStream) => {
+                remoteStreamRef.current.srcObject = remoteStream;
             });
+        });
 
-            peerRef.current = peer;
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        localStreamRef.current.srcObject = stream;
 
-            peer.on('open', (id) => {
-                console.log('PeerJS ID:', id);
-                setPeerId(id);
-            });
-
-            peer.on('call', (call) => {
-                console.log('Incoming call from:', call.peer);
-                call.answer();
-
-                call.on('stream', (remoteStream) => {
-                    console.log('Received remote stream');
-                    remoteStreamRef.current.srcObject = remoteStream;
-                });
-
-                call.on('close', () => {
-                    console.log('Call closed');
-                });
-
-                call.on('error', (err) => {
-                    console.error('Call error:', err);
-                });
-            });
-
-            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-            localStreamRef.current.srcObject = stream;
-
-            console.log('Local stream acquired.');
-        } catch (error) {
-            console.error('Error starting screen share:', error);
-        }
+        console.log('Local stream acquired. Waiting for remote peer...');
     };
 
     const makeCall = () => {
-        if (!peerRef.current || !remotePeerId) {
-            console.error('Peer instance or remote peer ID is missing.');
-            return;
-        }
+        if (!peerRef.current || !remotePeerId) return;
 
         const stream = localStreamRef.current.srcObject;
         const call = peerRef.current.call(remotePeerId, stream);
 
         call.on('stream', (remoteStream) => {
-            console.log('Received remote stream during call');
             remoteStreamRef.current.srcObject = remoteStream;
-        });
-
-        call.on('error', (err) => {
-            console.error('Call error:', err);
-        });
-
-        call.on('close', () => {
-            console.log('Call ended.');
         });
 
         console.log('Calling remote peer:', remotePeerId);
