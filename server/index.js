@@ -43,6 +43,7 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(8080, () => {
-    console.log('Server listening on port 8080');
+const PORT = 8080; // 직접 포트를 지정
+server.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
 });
