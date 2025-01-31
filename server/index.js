@@ -49,6 +49,10 @@ io.on('connection', (socket) => {
     });
 });
 
+app.get('/health', (req, res) => {
+    res.status(200).send('OK');
+});
+
 const PORT = 8080; // 직접 포트를 지정
 server.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
