@@ -49,12 +49,18 @@ export default function ScreenShare({ socket }) {
         peerConnectionRef.current.onicecandidate = (event) => {
             if (event.candidate) {
                 console.log('Sending ICE candidate:', event.candidate);
-                socket.emit('ice-candidate', { candidate: event.candidate });
-            } else {
-                console.log('All ICE candidates have been sent.');
+                socket.emit('ice-candidate', { target: broadcasterId, candidate: event.candidate });
             }
         };
+        socket.on('offer', (data) => {
+            console.log('Received offer:', data);
+            // Offer 처리 코드
+        });
 
+        socket.on('answer', (data) => {
+            console.log('Received answer:', data);
+            // Answer 처리 코드
+        });
         // Handle negotiation needed event
         peerConnectionRef.current.onnegotiationneeded = async () => {
             console.log('Negotiation needed');
@@ -97,7 +103,6 @@ export default function ScreenShare({ socket }) {
             console.log('Received answer:', data);
             await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
         });
-
         socket.on('ice-candidate', (data) => {
             console.log('Received ICE candidate:', data);
             peerConnectionRef.current
