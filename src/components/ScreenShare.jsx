@@ -26,11 +26,11 @@ export default function ScreenShare() {
 
         // Peer 연결 설정
         const peer = new Peer({
-            host: 'drawapp-five.vercel.app', // Vercel 배포 URL
-            port: 443, // HTTPS 사용 시 포트 443
-            path: '/peerjs',
-            secure: true, // HTTPS 환경 설정
-            config: { iceServers }, // STUN/TURN 서버 설정
+            host: 'drawapp-ne15.onrender.com',
+            port: 443,
+            path: '/peerjs', // 경로 명확히 설정
+            secure: true,
+            config: { iceServers },
         });
 
         peerRef.current = peer;

@@ -10,7 +10,7 @@ const server = http.createServer(app);
 // CORS 설정
 app.use(
     cors({
-        origin: 'https://drawapp-five.vercel.app',
+        origin: ['https://drawapp-five.vercel.app'], // 정확한 Vercel URL 사용
         methods: ['GET', 'POST'],
         credentials: true,
     })
