@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
+// TURN 서버 정보를 가져오는 함수
 async function getTurnServerCredentials() {
     try {
         const response = await fetch(
@@ -21,10 +22,11 @@ export default function ScreenShare({ socket }) {
     const localStreamRef = useRef(null);
     const remoteStreamRef = useRef(null);
     const peerConnectionRef = useRef(null);
-    const pendingRemoteCandidates = useRef([]);
+    const pendingCandidatesRef = useRef([]); // 대기 중인 ICE 후보
 
     const startScreenShare = async () => {
         console.log('Starting screen share...');
+
         const iceServers = await getTurnServerCredentials();
         const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
         localStreamRef.current.srcObject = stream;
@@ -38,7 +40,12 @@ export default function ScreenShare({ socket }) {
         peerConnectionRef.current.onicecandidate = (event) => {
             if (event.candidate) {
                 console.log('Generated ICE candidate:', event.candidate);
-                socket.emit('ice-candidate', { target: broadcasterId, candidate: event.candidate });
+                if (broadcasterId) {
+                    socket.emit('ice-candidate', { target: broadcasterId, candidate: event.candidate });
+                } else {
+                    console.warn('Broadcaster ID not yet defined. Queuing ICE candidate.');
+                    pendingCandidatesRef.current.push(event.candidate);
+                }
             }
         };
 
@@ -64,33 +71,50 @@ export default function ScreenShare({ socket }) {
             });
         };
 
-        socket.emit('offer', { target: id, offer: await peerConnectionRef.current.createOffer() });
-    };
-
-    useEffect(() => {
-        socket.on('broadcaster', (id) => {
-            console.log('Received broadcaster ID:', id);
-            setBroadcasterId(id);
-            if (!isBroadcaster) joinBroadcast(id);
-        });
-
+        // 수신한 offer에 대한 처리
         socket.on('offer', async (data) => {
             console.log('Received offer:', data);
             await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.offer));
             const answer = await peerConnectionRef.current.createAnswer();
             await peerConnectionRef.current.setLocalDescription(answer);
+            console.log('Sending answer:', answer);
             socket.emit('answer', { target: data.sender, answer });
         });
 
+        // 수신한 ICE 후보에 대한 처리
         socket.on('ice-candidate', (data) => {
             if (peerConnectionRef.current.remoteDescription) {
                 peerConnectionRef.current
                     .addIceCandidate(new RTCIceCandidate(data.candidate))
+                    .then(() => console.log('ICE candidate added successfully.'))
                     .catch((error) => console.error('Error adding ICE candidate:', error));
             } else {
                 console.warn('Remote description not set. Queueing ICE candidate.');
-                pendingRemoteCandidates.current.push(new RTCIceCandidate(data.candidate));
+                pendingCandidatesRef.current.push(new RTCIceCandidate(data.candidate));
             }
+        });
+
+        const offer = await peerConnectionRef.current.createOffer();
+        await peerConnectionRef.current.setLocalDescription(offer);
+        console.log('Sending offer to broadcaster:', id);
+        socket.emit('offer', { target: id, offer });
+    };
+
+    // 소켓 이벤트 설정
+    useEffect(() => {
+        socket.on('broadcaster', (id) => {
+            console.log('Received broadcaster ID:', id);
+            setBroadcasterId(id);
+
+            if (!isBroadcaster) {
+                joinBroadcast(id);
+            }
+
+            // 대기 중인 ICE 후보 전송
+            pendingCandidatesRef.current.forEach((candidate) => {
+                socket.emit('ice-candidate', { target: id, candidate });
+            });
+            pendingCandidatesRef.current = [];
         });
 
         return () => {
@@ -98,7 +122,7 @@ export default function ScreenShare({ socket }) {
             socket.off('offer');
             socket.off('ice-candidate');
         };
-    }, [isBroadcaster]);
+    }, [isBroadcaster, socket]);
 
     return (
         <div className="flex-1 flex items-center justify-center p-4 bg-gray-200">
