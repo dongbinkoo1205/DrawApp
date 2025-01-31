@@ -22,10 +22,11 @@ async function getTurnServerCredentials() {
 
 export default function ScreenShare({ socket }) {
     const [isBroadcaster, setIsBroadcaster] = useState(false);
-    const [broadcasterId, setBroadcasterId] = useState(null); // Broadcaster ID 상태 추가
+    const [broadcasterId, setBroadcasterId] = useState(null);
     const localStreamRef = useRef(null);
     const remoteStreamRef = useRef(null);
     const peerConnectionRef = useRef(null);
+    const pendingCandidatesRef = useRef([]); // 대기 중인 ICE 후보 저장용
 
     // Start screen sharing
     const startScreenShare = async () => {
@@ -53,7 +54,8 @@ export default function ScreenShare({ socket }) {
                 if (broadcasterId) {
                     socket.emit('ice-candidate', { target: broadcasterId, candidate: event.candidate });
                 } else {
-                    console.error('Broadcaster ID is not defined');
+                    console.warn('Broadcaster ID is not defined yet. Queuing ICE candidate.');
+                    pendingCandidatesRef.current.push(event.candidate); // ICE 후보를 큐에 저장
                 }
             }
         };
@@ -82,7 +84,17 @@ export default function ScreenShare({ socket }) {
     useEffect(() => {
         socket.on('broadcaster', (id) => {
             console.log('Received broadcaster ID:', id);
-            setBroadcasterId(id); // 상태에 Broadcaster ID 저장
+            setBroadcasterId(id);
+
+            // 대기 중인 ICE 후보 전송
+            if (pendingCandidatesRef.current.length > 0) {
+                console.log('Sending queued ICE candidates...');
+                pendingCandidatesRef.current.forEach((candidate) => {
+                    socket.emit('ice-candidate', { target: id, candidate });
+                });
+                pendingCandidatesRef.current = []; // 전송 후 큐 비우기
+            }
+
             if (!isBroadcaster) {
                 joinBroadcast(id);
             }
