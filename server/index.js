@@ -6,27 +6,28 @@ const cors = require('cors');
 const app = express();
 const server = http.createServer(app);
 
+// CORS 설정
 app.use(
     cors({
-        origin: 'https://drawapp-five.vercel.app', // 허용할 프론트엔드 도메인
-        methods: ['GET', 'POST'], // 허용할 HTTP 메서드
-        credentials: true, // 인증 정보(쿠키 등) 허용 여부
+        origin: 'https://drawapp-five.vercel.app', // 프론트엔드 도메인 허용
+        methods: ['GET', 'POST'],
     })
 );
 
+// Socket.io 서버 설정
 const io = new Server(server, {
     cors: {
         origin: 'https://drawapp-five.vercel.app',
         methods: ['GET', 'POST'],
-        credentials: true,
     },
+    transports: ['websocket'], // WebSocket 전용 전송 방식 설정 (optional)
 });
 
 io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
+    console.log('WebSocket connected:', socket.id);
 
     socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
+        console.log('WebSocket disconnected:', socket.id);
     });
 });
 

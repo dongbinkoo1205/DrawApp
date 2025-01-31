@@ -3,9 +3,10 @@ import io from 'socket.io-client';
 import ScreenShare from './components/ScreenShare';
 
 const socket = io('https://drawapp-ne15.onrender.com', {
-    transports: ['websocket'],  // 폴링 대신 WebSocket만 사용
+    transports: ['websocket'], // WebSocket만 사용하도록 설정
+    reconnectionAttempts: 5, // 재연결 시도 횟수
+    timeout: 10000, // 연결 타임아웃 설정 (10초)
 });
-
 
 export default function App() {
     const [messages, setMessages] = useState([]);
