@@ -9,8 +9,9 @@ const server = http.createServer(app);
 // CORS 설정
 app.use(
     cors({
-        origin: 'https://drawapp-five.vercel.app', // 프론트엔드 도메인 허용
+        origin: 'https://drawapp-five.vercel.app', // 허용할 프론트엔드 도메인
         methods: ['GET', 'POST'],
+        credentials: true, // 인증 정보(Cookies, Authorization)를 허용
     })
 );
 
@@ -19,17 +20,36 @@ const io = new Server(server, {
     cors: {
         origin: 'https://drawapp-five.vercel.app',
         methods: ['GET', 'POST'],
+        credentials: true,
     },
-    transports: ['websocket'], // WebSocket 전용 전송 방식 설정 (optional)
+    transports: ['polling', 'websocket'], // 기본 폴백 방식 허용
 });
 
+// WebSocket 연결 이벤트
 io.on('connection', (socket) => {
     console.log('WebSocket connected:', socket.id);
 
-    socket.on('disconnect', () => {
-        console.log('WebSocket disconnected:', socket.id);
+    // Heartbeat (ping-pong) 설정
+    socket.on('ping', () => {
+        console.log('Received ping from:', socket.id);
+        socket.emit('pong');
+    });
+
+    // 연결 종료 이벤트
+    socket.on('disconnect', (reason) => {
+        console.log('WebSocket disconnected:', socket.id, 'Reason:', reason);
+    });
+
+    // 에러 핸들러
+    socket.on('error', (err) => {
+        console.error('WebSocket error:', err);
     });
 });
 
-const PORT = process.env.PORT || 5000;
+// 서버 에러 핸들러
+server.on('error', (err) => {
+    console.error('Server error:', err);
+});
+
+const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
