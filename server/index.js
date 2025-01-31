@@ -41,6 +41,10 @@ io.on('connection', (socket) => {
         }
         console.log('User disconnected:', socket.id);
     });
+
+    socket.on('chat-message', (message) => {
+        io.emit('chat-message', { id: socket.id, message });
+    });
 });
 
 server.listen(8080, () => {
