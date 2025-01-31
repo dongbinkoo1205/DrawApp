@@ -17,13 +17,7 @@ const ScreenShare = () => {
     const localStream = useRef(null);
 
     useEffect(() => {
-        socket.on('screen-share-started', ({ sharerId, offer }) => {
-            console.log('Existing screen share detected from:', sharerId);
-            if (!isSharing) {
-                startReceivingRemoteScreen(offer);
-            }
-        });
-
+        socket.on('screen-share-started', handleRemoteScreenShare);
         socket.on('screen-share-stopped', stopRemoteScreenShare);
         socket.on('offer', handleOffer);
         socket.on('answer', handleAnswer);
@@ -60,9 +54,10 @@ const ScreenShare = () => {
 
             const offer = await peerConnection.current.createOffer();
             await peerConnection.current.setLocalDescription(offer);
-            socket.emit('start-screen-share', { sharerId: socket.id, offer });
+            socket.emit('offer', offer);
 
             setIsSharing(true);
+            socket.emit('start-screen-share');
         } catch (error) {
             console.error('Error starting screen share:', error);
         }
@@ -73,28 +68,6 @@ const ScreenShare = () => {
         peerConnection.current.close();
         socket.emit('stop-screen-share');
         setIsSharing(false);
-    };
-
-    const startReceivingRemoteScreen = async (offer) => {
-        try {
-            peerConnection.current = new RTCPeerConnection({ iceServers });
-            peerConnection.current.ontrack = (event) => {
-                videoRef.current.srcObject = event.streams[0];
-            };
-
-            peerConnection.current.onicecandidate = (event) => {
-                if (event.candidate) {
-                    socket.emit('ice-candidate', event.candidate);
-                }
-            };
-
-            await peerConnection.current.setRemoteDescription(new RTCSessionDescription(offer));
-            const answer = await peerConnection.current.createAnswer();
-            await peerConnection.current.setLocalDescription(answer);
-            socket.emit('answer', answer);
-        } catch (error) {
-            console.error('Error receiving remote screen:', error);
-        }
     };
 
     const handleRemoteScreenShare = (sharerId) => {
