@@ -1,9 +1,9 @@
-// ScreenShare.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 
 const socket = io('https://drawapp-ne15.onrender.com');
 const iceServers = [
+    { urls: 'stun:stun.l.google.com:19302' }, // 추가된 Google STUN 서버
     { urls: 'stun:stun.relay.metered.ca:80' },
     { urls: 'turn:global.relay.metered.ca:80', username: '0e7b1f0cd385987cbf443ba6', credential: 'CgDOWoNDYeHJSP/f' },
     { urls: 'turn:global.relay.metered.ca:443', username: '0e7b1f0cd385987cbf443ba6', credential: 'CgDOWoNDYeHJSP/f' },
@@ -65,6 +65,10 @@ const ScreenShare = () => {
                 }
             };
 
+            peerConnection.current.onconnectionstatechange = () => {
+                console.log('Connection state:', peerConnection.current.connectionState);
+            };
+
             const offer = await peerConnection.current.createOffer();
             await peerConnection.current.setLocalDescription(offer);
             socket.emit('offer', offer);
@@ -98,8 +102,15 @@ const ScreenShare = () => {
 
     const handleOffer = async (offer) => {
         peerConnection.current = new RTCPeerConnection({ iceServers });
+
         peerConnection.current.ontrack = (event) => {
             videoRef.current.srcObject = event.streams[0];
+        };
+
+        peerConnection.current.onicecandidate = (event) => {
+            if (event.candidate) {
+                socket.emit('ice-candidate', event.candidate);
+            }
         };
 
         await peerConnection.current.setRemoteDescription(new RTCSessionDescription(offer));
@@ -113,7 +124,9 @@ const ScreenShare = () => {
     };
 
     const handleIceCandidate = (candidate) => {
-        peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
+        peerConnection.current
+            .addIceCandidate(new RTCIceCandidate(candidate))
+            .catch((error) => console.error('Error adding ICE candidate:', error));
     };
 
     const sendMessage = (message) => {
