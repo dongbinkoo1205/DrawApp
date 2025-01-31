@@ -10,16 +10,16 @@ const server = http.createServer(app);
 // CORS 설정
 app.use(
     cors({
-        origin: 'https://drawapp-five.vercel.app', // 허용할 클라이언트 도메인
-        methods: ['GET', 'POST'], // 허용할 HTTP 메서드
-        credentials: true, // 인증 정보(Cookie, Authorization) 허용
+        origin: 'https://drawapp-five.vercel.app',
+        methods: ['GET', 'POST'],
+        credentials: true,
     })
 );
 
 // Socket.io 설정
 const io = new Server(server, {
     cors: {
-        origin: 'https://drawapp-five.vercel.app', // CORS 설정을 Socket.io에도 적용
+        origin: 'https://drawapp-five.vercel.app',
         methods: ['GET', 'POST'],
         credentials: true,
     },
@@ -35,16 +35,28 @@ io.on('connection', (socket) => {
     });
 
     socket.on('offer', (data) => {
+        if (!data.target || !data.offer) {
+            console.error('Invalid offer data:', data);
+            return;
+        }
         console.log(`Received offer from ${socket.id} to ${data.target}`);
         socket.to(data.target).emit('offer', { sender: socket.id, offer: data.offer });
     });
 
     socket.on('answer', (data) => {
+        if (!data.target || !data.answer) {
+            console.error('Invalid answer data:', data);
+            return;
+        }
         console.log(`Received answer from ${socket.id} to ${data.target}`);
         socket.to(data.target).emit('answer', { sender: socket.id, answer: data.answer });
     });
 
     socket.on('ice-candidate', (data) => {
+        if (!data.target || !data.candidate) {
+            console.error('Invalid ICE candidate data:', data);
+            return;
+        }
         console.log(`Received ICE candidate from ${socket.id} to ${data.target}`);
         socket.to(data.target).emit('ice-candidate', { candidate: data.candidate });
     });

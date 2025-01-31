@@ -16,7 +16,7 @@ async function getTurnServerCredentials() {
         return iceServers;
     } catch (error) {
         console.error('Error fetching TURN server credentials:', error);
-        return [{ urls: 'stun:stun.l.google.com:19302' }]; // 기본 STUN 서버 반환
+        return [{ urls: 'stun:stun.l.google.com:19302' }];
     }
 }
 
@@ -44,7 +44,6 @@ export default function ScreenShare({ socket }) {
         // PeerConnection 생성
         peerConnectionRef.current = new RTCPeerConnection({ iceServers });
 
-        // Add tracks to PeerConnection
         stream.getTracks().forEach((track) => peerConnectionRef.current.addTrack(track, stream));
 
         // Handle ICE candidates
@@ -55,26 +54,23 @@ export default function ScreenShare({ socket }) {
                     socket.emit('ice-candidate', { target: broadcasterId, candidate: event.candidate });
                 } else {
                     console.warn('Broadcaster ID is not defined yet. Queuing ICE candidate.');
-                    pendingCandidatesRef.current.push(event.candidate); // ICE 후보를 큐에 저장
+                    pendingCandidatesRef.current.push(event.candidate);
                 }
             }
         };
 
-        // Handle negotiation needed event
         peerConnectionRef.current.onnegotiationneeded = async () => {
             console.log('Negotiation needed');
             const offer = await peerConnectionRef.current.createOffer();
             await peerConnectionRef.current.setLocalDescription(offer);
             console.log('Sending offer:', offer);
-            socket.emit('offer', { offer });
+            socket.emit('offer', { target: broadcasterId, offer });
         };
 
-        // Track ICE connection state
         peerConnectionRef.current.oniceconnectionstatechange = () => {
             console.log('ICE connection state:', peerConnectionRef.current.iceConnectionState);
         };
 
-        // Track WebRTC connection state
         peerConnectionRef.current.onconnectionstatechange = () => {
             console.log('Connection state:', peerConnectionRef.current.connectionState);
         };
@@ -86,13 +82,12 @@ export default function ScreenShare({ socket }) {
             console.log('Received broadcaster ID:', id);
             setBroadcasterId(id);
 
-            // 대기 중인 ICE 후보 전송
             if (pendingCandidatesRef.current.length > 0) {
                 console.log('Sending queued ICE candidates...');
                 pendingCandidatesRef.current.forEach((candidate) => {
                     socket.emit('ice-candidate', { target: id, candidate });
                 });
-                pendingCandidatesRef.current = []; // 전송 후 큐 비우기
+                pendingCandidatesRef.current = [];
             }
 
             if (!isBroadcaster) {
@@ -106,7 +101,7 @@ export default function ScreenShare({ socket }) {
             const answer = await peerConnectionRef.current.createAnswer();
             await peerConnectionRef.current.setLocalDescription(answer);
             console.log('Sending answer:', answer);
-            socket.emit('answer', { answer });
+            socket.emit('answer', { target: data.sender, answer });
         });
 
         socket.on('answer', async (data) => {
@@ -133,14 +128,11 @@ export default function ScreenShare({ socket }) {
     const joinBroadcast = async (id) => {
         console.log('Joining broadcast from:', id);
 
-        // TURN 서버 정보 가져오기
         const iceServers = await getTurnServerCredentials();
 
         peerConnectionRef.current = new RTCPeerConnection({ iceServers });
-
         remoteStreamRef.current.srcObject = new MediaStream();
 
-        // Add incoming track to remote stream
         peerConnectionRef.current.ontrack = (event) => {
             console.log('Received remote track:', event);
             event.streams[0].getTracks().forEach((track) => {
@@ -150,8 +142,9 @@ export default function ScreenShare({ socket }) {
 
         const offer = await peerConnectionRef.current.createOffer();
         await peerConnectionRef.current.setLocalDescription(offer);
-        console.log('Sending offer to broadcaster');
-        socket.emit('offer', { offer });
+
+        console.log('Sending offer to broadcaster:', id);
+        socket.emit('offer', { target: id, offer });
     };
 
     return (
