@@ -27,7 +27,6 @@ const ScreenShare = () => {
     const peerConnection = useRef(null);
     const localStream = useRef(null);
     const [participants, setParticipants] = useState([]); // 참여자들
-    const [nickName, setNickName] = useState([]); // 참여자들
     console.log(participants);
     useEffect(() => {
         socket.on('screen-share-started', handleRemoteScreenShare);
@@ -166,11 +165,11 @@ const ScreenShare = () => {
                     <ul className="text-sm space-y-2 mb-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
                         {participants.map((participant) => (
                             <li key={participant.id} className="p-2 bg-gray-700 rounded-lg">
-                                {participant.nickName}
+                                {participant.nickname}
                             </li>
                         ))}
                     </ul>
-                    <Chat messages={messages} onSendMessage={sendMessage} />
+                    <Chat messages={messages} participants={participants} onSendMessage={sendMessage} />
                 </div>
             </div>
         </div>

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 
-const Chat = ({ messages = [], onSendMessage }) => {
+const Chat = ({ messages = [], onSendMessage, participants = [] }) => {
     const [inputValue, setInputValue] = useState('');
 
     const handleSend = () => {
         if (inputValue.trim()) {
-            onSendMessage({ id: 'User1', message: inputValue }); // 메시지 객체로 전송
+            onSendMessage({ id: participants.nickname, message: inputValue }); // 메시지 객체로 전송
             setInputValue('');
         }
     };

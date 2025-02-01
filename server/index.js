@@ -17,12 +17,9 @@ const io = new Server(server, {
 let activeScreenSharer = null;
 let participants = []; // 참여자 목록
 io.on('connection', (socket) => {
-    // 참여자 연결확인
-    console.log('User connected:', socket.id);
     socket.on('join', (nickname) => {
         // 새로운 참여자 추가
         participants.push({ id: socket.id, nickname });
-        console.log(`${nickname} joined the room`);
         io.emit('participants-update', participants); // 참여자 목록 전송
     });
     if (activeScreenSharer) {
@@ -33,7 +30,6 @@ io.on('connection', (socket) => {
         if (!activeScreenSharer) {
             activeScreenSharer = socket.id;
             io.emit('screen-share-started', socket.id);
-            console.log('Screen share started by:', socket.id);
         } else {
             socket.emit('error', 'Screen sharing is already active.');
         }
