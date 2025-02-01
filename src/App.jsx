@@ -2,6 +2,7 @@
 import React from 'react';
 import ScreenShare from './components/ScreenShare';
 import './index.css'; // Import Tailwind CSS
+import './components/CustomScrollBar.css';
 
 const App = () => {
     return (
