@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 const Chat = ({ messages = [], onSendMessage }) => {
     const [inputValue, setInputValue] = useState('');
 
+    console.log(messages);
+
     const handleSend = () => {
         if (inputValue.trim()) {
             onSendMessage({ sender: nickname, text: inputValue });
