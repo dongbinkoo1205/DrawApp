@@ -10,44 +10,49 @@ const io = new Server(server, {
     cors: {
         origin: '*', // 모든 출처 허용
         methods: ['GET', 'POST'],
-        credentials: true, // 필요한 경우 쿠키, 인증 정보 사용 가능
+        credentials: true,
     },
 });
 
 let activeScreenSharer = null;
 let participants = []; // 참여자 목록
+
 io.on('connection', (socket) => {
-    // 참여자 연결확인
     console.log('User connected:', socket.id);
+
+    // 닉네임을 통해 참여자 추가
     socket.on('join', (nickname) => {
-        // 새로운 참여자 추가
         participants.push({ id: socket.id, nickname });
         console.log(`${nickname} joined the room`);
         io.emit('participants-update', participants); // 참여자 목록 전송
     });
-    // 현재 화면 공유 중인 사용자 정보 전송
+
+    // 현재 공유 중인 화면 정보가 있을 경우 Offer 전송
     if (activeScreenSharer) {
         socket.emit('screen-share-started', activeScreenSharer.offer);
     }
 
-    socket.on('start-screen-share', () => {
+    // 화면 공유 시작
+    socket.on('start-screen-share', (offer) => {
         if (!activeScreenSharer) {
             activeScreenSharer = { id: socket.id, offer };
-            io.emit('screen-share-started', offer); // 모든 사용자에게 공유 시작 알림
+            io.emit('screen-share-started', offer); // 모든 사용자에게 Offer 전송
             console.log('Screen share started by:', socket.id);
         } else {
             socket.emit('error', 'Screen sharing is already active.');
         }
     });
 
+    // 화면 공유 중지
     socket.on('stop-screen-share', () => {
         if (activeScreenSharer && activeScreenSharer.id === socket.id) {
             activeScreenSharer = null;
-            io.emit('screen-share-stopped');
+            io.emit('screen-share-stopped'); // 모든 사용자에게 공유 중지 알림
             console.log('Screen share stopped by:', socket.id);
         }
     });
 
+    // Offer/Answer 및 ICE Candidate 처리
     socket.on('offer', (offer) => {
         socket.broadcast.emit('offer', offer);
     });
@@ -60,18 +65,21 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('ice-candidate', candidate);
     });
 
+    // 채팅 메시지 처리
     socket.on('chat-message', (message) => {
         io.emit('chat-message', message);
     });
 
+    // 사용자 연결 해제 시 참여자 목록 및 화면 공유 상태 업데이트
     socket.on('disconnect', () => {
-        // 나간 참여자 제거
         participants = participants.filter((participant) => participant.id !== socket.id);
-        io.emit('participants-update', participants); // 참여자 목록 업데이트
-        if (activeScreenSharer === socket.id) {
+        io.emit('participants-update', participants);
+
+        if (activeScreenSharer && activeScreenSharer.id === socket.id) {
             activeScreenSharer = null;
             io.emit('screen-share-stopped');
         }
+
         console.log('User disconnected:', socket.id);
     });
 });
