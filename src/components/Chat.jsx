@@ -20,11 +20,19 @@ const Chat = ({ messages = [], onSendMessage, participants = [] }) => {
             <h3 className="text-lg font-semibold mb-2">Chat</h3>
             <ul className="flex-1 space-y-2 overflow-y-auto p-2 bg-gray-700 rounded-lg scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
                 {messages.length > 0 ? (
-                    messages.map((msg, index) => (
-                        <li key={msg.id || index} className="bg-gray-600 p-2 rounded-lg text-sm text-gray-300">
-                            <span className="font-bold text-white">{getNickname(msg.senderId)}</span>: {msg.text || ''}
-                        </li>
-                    ))
+                    messages.map((msg, index) => {
+                        // 삼항 연산자: 첫 메시지이거나 이전 메시지와 보낸 사람이 다르면 닉네임 표시
+                        const showNickname = index === 0 ? true : messages[index - 1].senderId !== msg.senderId;
+
+                        return (
+                            <li key={msg.id || index} className="bg-gray-600 p-2 rounded-lg text-sm text-gray-300">
+                                {showNickname ? (
+                                    <span className="font-bold text-white">{getNickname(msg.senderId)}</span>
+                                ) : null}
+                                <span className={showNickname ? 'ml-2' : ''}>{msg.text}</span>
+                            </li>
+                        );
+                    })
                 ) : (
                     <li className="text-gray-400 text-center">No messages yet...</li>
                 )}
