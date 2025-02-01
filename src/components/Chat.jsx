@@ -17,8 +17,7 @@ const Chat = ({ messages = [], onSendMessage }) => {
                 {messages.length > 0 ? (
                     messages.map((msg, index) => (
                         <li key={msg.id || index} className="bg-gray-600 p-2 rounded-lg text-sm text-gray-300">
-                            <span className="font-bold text-white">{msg.sender || 'Anonymous'}</span>:{' '}
-                            {msg.message || ''}
+                            <span className="font-bold text-white">{msg.sender || 'Anonymous'}</span>: {msg.text || ''}
                         </li>
                     ))
                 ) : (
