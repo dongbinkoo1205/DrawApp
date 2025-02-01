@@ -27,6 +27,7 @@ const ScreenShare = () => {
     const peerConnection = useRef(null);
     const localStream = useRef(null);
     const [participants, setParticipants] = useState([]); // 참여자들
+    const [nickname, setNickname] = useState('');
     useEffect(() => {
         socket.on('screen-share-started', handleRemoteScreenShare);
         socket.on('screen-share-stopped', stopRemoteScreenShare);
@@ -38,6 +39,7 @@ const ScreenShare = () => {
         });
         // 닉네임 입력 및 서버로 전송
         const nickName = prompt('Enter your nickname:') || 'Anonymous';
+        setNickname(nickName);
         socket.emit('join', nickName);
         // 서버로부터 참여자 목록 수신
         socket.on('participants-update', (data) => {
@@ -126,7 +128,7 @@ const ScreenShare = () => {
     };
 
     const sendMessage = (message) => {
-        socket.emit('chat-message', message);
+        socket.emit('chat-message', { sender: nickname, text: message });
     };
 
     return (

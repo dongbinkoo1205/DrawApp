@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 
-const Chat = ({ messages = [], onSendMessage, participants = [] }) => {
+const Chat = ({ messages = [], onSendMessage }) => {
     const [inputValue, setInputValue] = useState('');
-
-    console.log(messages);
 
     const handleSend = () => {
         if (inputValue.trim()) {
@@ -19,7 +17,7 @@ const Chat = ({ messages = [], onSendMessage, participants = [] }) => {
                 {messages.length > 0 ? (
                     messages.map((msg, index) => (
                         <li key={msg.id || index} className="bg-gray-600 p-2 rounded-lg text-sm text-gray-300">
-                            <span className="font-bold text-white">{msg.nickname || 'Anonymous'}</span>:{' '}
+                            <span className="font-bold text-white">{msg.sender || 'Anonymous'}</span>:{' '}
                             {msg.message || ''}
                         </li>
                     ))
