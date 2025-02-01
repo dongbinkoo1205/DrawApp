@@ -27,7 +27,6 @@ const ScreenShare = () => {
     const peerConnection = useRef(null);
     const localStream = useRef(null);
     const [participants, setParticipants] = useState([]); // 참여자들
-    console.log(participants);
     useEffect(() => {
         socket.on('screen-share-started', handleRemoteScreenShare);
         socket.on('screen-share-stopped', stopRemoteScreenShare);

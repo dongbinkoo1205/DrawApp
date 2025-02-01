@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 const Chat = ({ messages = [], onSendMessage, participants = [] }) => {
+    console.log(participants);
     const [inputValue, setInputValue] = useState('');
 
     const handleSend = () => {
