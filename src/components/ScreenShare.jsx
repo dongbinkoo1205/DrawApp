@@ -3,8 +3,8 @@ import { io } from 'socket.io-client';
 import logo from '../assets/logo.png';
 import Chat from './Chat';
 
-const socket = io('https://drawapp-ne15.onrender.com');
-// const socket = io('http://localhost:8080');
+// const socket = io('https://drawapp-ne15.onrender.com');
+const socket = io('http://localhost:8080');
 const iceServers = [
     { urls: 'stun:stun.relay.metered.ca:80' },
     {
@@ -25,7 +25,7 @@ const ScreenShare = () => {
     const videoRef = useRef(null);
     const peerConnection = useRef(null);
     const localStream = useRef(null);
-    const [participants, setParticipants] = useState(0); // 참여자들 선언
+    const [participants, setParticipants] = useState([]); // 참여자들
 
     useEffect(() => {
         socket.on('screen-share-started', handleRemoteScreenShare);
@@ -36,8 +36,12 @@ const ScreenShare = () => {
         socket.on('chat-message', (data) => {
             setMessages((prev) => [...prev, data]);
         });
-        socket.on('participants-update', (count) => {
-            setParticipants(count); // 참여자 수 업데이트
+        // 닉네임 입력 및 서버로 전송
+        const nickname = prompt('Enter your nickname:') || 'Anonymous';
+        socket.emit('join', nickname);
+        // 서버로부터 참여자 목록 수신
+        socket.on('participants-update', (data) => {
+            setParticipants(data);
         });
 
         return () => {
@@ -47,7 +51,6 @@ const ScreenShare = () => {
             socket.off('answer');
             socket.off('ice-candidate');
             socket.off('chat-message');
-            // 컴포넌트 언마운트 시 이벤트 해제
             socket.off('participants-update');
         };
     }, []);
@@ -156,14 +159,14 @@ const ScreenShare = () => {
 
                 <div className="bg-gray-800 shadow-lg rounded-lg p-4 w-[21%] flex flex-col">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold">Participants {participants}</h3>
+                        <h3 className="text-lg font-semibold">On The Call {participants.length}</h3>
                     </div>
                     <ul className="text-sm space-y-2 mb-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
-                        <li className="flex items-center gap-2 p-2 bg-gray-700 rounded-lg">
-                            <span className="w-8 h-8 rounded-full bg-gray-500"></span>
-                            <span className="flex-1 font-semibold text-white">Laura Williams</span>
-                            <span className="text-gray-400 text-xs">🔊</span>
-                        </li>
+                        {participants.map((participant) => (
+                            <li key={participant.id} className="p-2 bg-gray-700 rounded-lg">
+                                {participant.nickname}
+                            </li>
+                        ))}
                     </ul>
                     <Chat messages={messages} onSendMessage={sendMessage} />
                 </div>

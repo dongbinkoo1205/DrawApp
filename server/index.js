@@ -15,15 +15,16 @@ const io = new Server(server, {
 });
 
 let activeScreenSharer = null;
-let participants = 0; // 현재 참여자 수
 
 io.on('connection', (socket) => {
     // 참여자 연결확인
     console.log('User connected:', socket.id);
-    // 참여자가 추가되면 숫자 증가
-    participants++;
-    // 클라이언트 코드에 참여자 전송
-    io.emit('participants-update', participants);
+    socket.on('join', (nickname) => {
+        // 새로운 참여자 추가
+        participants.push({ id: socket.id, nickname });
+        console.log(`${nickname} joined the room`);
+        io.emit('participants-update', participants); // 참여자 목록 전송
+    });
     if (activeScreenSharer) {
         socket.emit('screen-share-started', activeScreenSharer);
     }
@@ -63,10 +64,9 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        // 참여자가 나가면 숫자 감소
-        participants--;
-        // 클라이언트 코드에 참여자 전송
-        io.emit('participants-update', participants);
+        // 나간 참여자 제거
+        participants = participants.filter((participant) => participant.id !== socket.id);
+        io.emit('participants-update', participants); // 참여자 목록 업데이트
         if (activeScreenSharer === socket.id) {
             activeScreenSharer = null;
             io.emit('screen-share-stopped');
