@@ -40,7 +40,7 @@ const ScreenShare = () => {
         // 닉네임 입력 및 서버로 전송
         const nickName = prompt('Enter your nickname:') || 'Anonymous';
         setNickname(nickName);
-        socket.emit('join', nickName);
+        socket.emit('join');
         // 서버로부터 참여자 목록 수신
         socket.on('participants-update', (data) => {
             setParticipants(data);

@@ -27,7 +27,9 @@ const Chat = ({ messages = [], onSendMessage, participants = [] }) => {
                             <li key={msg.id || index} className="bg-gray-600 p-2 rounded-lg text-sm text-gray-300">
                                 {showNickname ? (
                                     <span className="font-bold text-white">{getNickname(msg.senderId)}</span>
-                                ) : null}
+                                ) : (
+                                    <div className="p-3"></div>
+                                )}
                                 <span className={showNickname ? 'ml-2' : ''}>{msg.text}</span>
                             </li>
                         );
