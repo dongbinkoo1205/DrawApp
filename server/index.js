@@ -25,14 +25,15 @@ io.on('connection', (socket) => {
         console.log(`${nickname} joined the room`);
         io.emit('participants-update', participants); // 참여자 목록 전송
     });
+    // 현재 화면 공유 중인 사용자 정보 전송
     if (activeScreenSharer) {
-        socket.emit('screen-share-started', activeScreenSharer);
+        socket.emit('screen-share-started', activeScreenSharer.offer);
     }
 
     socket.on('start-screen-share', () => {
         if (!activeScreenSharer) {
-            activeScreenSharer = socket.id;
-            io.emit('screen-share-started', socket.id);
+            activeScreenSharer = { id: socket.id, offer };
+            io.emit('screen-share-started', offer); // 모든 사용자에게 공유 시작 알림
             console.log('Screen share started by:', socket.id);
         } else {
             socket.emit('error', 'Screen sharing is already active.');
@@ -40,7 +41,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('stop-screen-share', () => {
-        if (activeScreenSharer === socket.id) {
+        if (activeScreenSharer && activeScreenSharer.id === socket.id) {
             activeScreenSharer = null;
             io.emit('screen-share-stopped');
             console.log('Screen share stopped by:', socket.id);
