@@ -164,7 +164,10 @@ const ScreenShare = () => {
                     className="w-[78%] h-full bg-black rounded-lg shadow-lg"
                 ></video>
 
-                <div className="bg-gray-800 shadow-lg rounded-lg p-4 w-[21%] flex flex-col scrollbar-custom">
+                <div
+                    className="bg-gray-800 shadow-lg rounded-lg p-4 w-[21%] flex flex-col scrollbar-custom overflow-y-scroll overflow-x-scroll"
+                    style={{ height: 'calc(100vh - 70px)' }}
+                >
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold">On The Call {participants.length}</h3>
                     </div>
