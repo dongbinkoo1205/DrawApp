@@ -5,7 +5,7 @@ const Chat = ({ messages = [], onSendMessage }) => {
 
     const handleSend = () => {
         if (inputValue.trim()) {
-            onSendMessage({ id: participants.nickname, message: inputValue }); // 메시지 객체로 전송
+            onSendMessage({ id: messages.sender, message: inputValue }); // 메시지 객체로 전송
             setInputValue('');
         }
     };
