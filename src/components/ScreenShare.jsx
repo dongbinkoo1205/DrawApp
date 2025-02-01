@@ -3,7 +3,8 @@ import { io } from 'socket.io-client';
 import logo from '../assets/logo.png';
 import Chat from './Chat';
 
-const socket = io('https://drawapp-ne15.onrender.com');
+// const socket = io('https://drawapp-ne15.onrender.com');
+const socket = io('http://localhost:8080');
 const iceServers = [
     { urls: 'stun:stun.relay.metered.ca:80' },
     {
@@ -24,6 +25,7 @@ const ScreenShare = () => {
     const videoRef = useRef(null);
     const peerConnection = useRef(null);
     const localStream = useRef(null);
+    const [participants, setParticipants] = useState(0); // 참여자들 선언
 
     useEffect(() => {
         socket.on('screen-share-started', handleRemoteScreenShare);
@@ -34,6 +36,9 @@ const ScreenShare = () => {
         socket.on('chat-message', (data) => {
             setMessages((prev) => [...prev, data]);
         });
+        socket.on('participants-update', (count) => {
+            setParticipants(count); // 참여자 수 업데이트
+        });
 
         return () => {
             socket.off('screen-share-started');
@@ -42,6 +47,8 @@ const ScreenShare = () => {
             socket.off('answer');
             socket.off('ice-candidate');
             socket.off('chat-message');
+            // 컴포넌트 언마운트 시 이벤트 해제
+            socket.off('participants-update');
         };
     }, []);
 
@@ -149,8 +156,7 @@ const ScreenShare = () => {
 
                 <div className="bg-gray-800 shadow-lg rounded-lg p-4 w-[21%] flex flex-col">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold">Participants (4)</h3>
-                        <span className="text-gray-400 text-sm">Viewers (10)</span>
+                        <h3 className="text-lg font-semibold">Participants {participants}</h3>
                     </div>
                     <ul className="text-sm space-y-2 mb-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
                         <li className="flex items-center gap-2 p-2 bg-gray-700 rounded-lg">

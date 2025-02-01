@@ -15,10 +15,15 @@ const io = new Server(server, {
 });
 
 let activeScreenSharer = null;
+let participants = 0; // 현재 참여자 수
 
 io.on('connection', (socket) => {
+    // 참여자 연결확인
     console.log('User connected:', socket.id);
-
+    // 참여자가 추가되면 숫자 증가
+    participants++;
+    // 클라이언트 코드에 참여자 전송
+    io.emit('participants-update', participants);
     if (activeScreenSharer) {
         socket.emit('screen-share-started', activeScreenSharer);
     }
@@ -58,6 +63,10 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
+        // 참여자가 나가면 숫자 감소
+        participants--;
+        // 클라이언트 코드에 참여자 전송
+        io.emit('participants-update', participants);
         if (activeScreenSharer === socket.id) {
             activeScreenSharer = null;
             io.emit('screen-share-stopped');
