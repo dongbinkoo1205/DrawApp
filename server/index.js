@@ -15,7 +15,7 @@ const io = new Server(server, {
 });
 
 let activeScreenSharer = null;
-
+let participants = []; // 참여자 목록
 io.on('connection', (socket) => {
     // 참여자 연결확인
     console.log('User connected:', socket.id);
