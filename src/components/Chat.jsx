@@ -10,7 +10,7 @@ const Chat = ({ messages = [], onSendMessage, participants = [] }) => {
 
     const handleSend = () => {
         if (inputValue.trim()) {
-            onSendMessage({ sender: nickname, text: inputValue });
+            onSendMessage(inputValue);
             setInputValue('');
         }
     };

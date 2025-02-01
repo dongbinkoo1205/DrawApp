@@ -127,8 +127,13 @@ const ScreenShare = () => {
         peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
     };
 
-    const sendMessage = (message) => {
-        socket.emit('chat-message', { sender: nickname, text: message });
+    const sendMessage = (text) => {
+        const message = {
+            senderId: socket.id, // 소켓 ID 전송
+            sender: nickname, // 닉네임도 전송 (서버에서는 필요할 수 있음)
+            text,
+        };
+        socket.emit('chat-message', message); // 메시지 전송
     };
 
     return (
