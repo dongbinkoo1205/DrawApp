@@ -4,6 +4,7 @@ import logo from '../assets/logo.png';
 import Chat from './Chat';
 
 const socket = io('https://drawapp-ne15.onrender.com');
+// const socket = io('http://localhost:8080');
 const iceServers = [
     { urls: 'stun:stun.relay.metered.ca:80' },
     {
@@ -21,57 +22,36 @@ const iceServers = [
 const ScreenShare = () => {
     const [isSharing, setIsSharing] = useState(false);
     const [messages, setMessages] = useState([]);
-    const [participants, setParticipants] = useState([]);
     const videoRef = useRef(null);
     const peerConnection = useRef(null);
     const localStream = useRef(null);
+    const [participants, setParticipants] = useState([]); // 참여자들
 
     useEffect(() => {
+        socket.on('screen-share-started', handleRemoteScreenShare);
+        socket.on('screen-share-stopped', stopRemoteScreenShare);
+        socket.on('offer', handleOffer);
+        socket.on('answer', handleAnswer);
+        socket.on('ice-candidate', handleIceCandidate);
+        socket.on('chat-message', (data) => {
+            setMessages((prev) => [...prev, data]);
+        });
         // 닉네임 입력 및 서버로 전송
         const nickname = prompt('Enter your nickname:') || 'Anonymous';
         socket.emit('join', nickname);
-
-        // 참여자 목록 업데이트
+        // 서버로부터 참여자 목록 수신
         socket.on('participants-update', (data) => {
             setParticipants(data);
         });
 
-        // 서버로부터 Offer 수신 시 WebRTC 연결 설정
-        socket.on('screen-share-started', async (offer) => {
-            if (peerConnection.current) {
-                peerConnection.current.close();
-            }
-
-            peerConnection.current = new RTCPeerConnection({ iceServers });
-
-            // 수신 트랙 설정
-            peerConnection.current.ontrack = (event) => {
-                videoRef.current.srcObject = event.streams[0];
-            };
-
-            // ICE Candidate 이벤트 처리
-            peerConnection.current.onicecandidate = (event) => {
-                if (event.candidate) {
-                    socket.emit('ice-candidate', event.candidate);
-                }
-            };
-
-            // Offer 처리 및 Answer 생성
-            await peerConnection.current.setRemoteDescription(new RTCSessionDescription(offer));
-            const answer = await peerConnection.current.createAnswer();
-            await peerConnection.current.setLocalDescription(answer);
-            socket.emit('answer', answer); // Answer 전송
-        });
-
-        // ICE Candidate 수신
-        socket.on('ice-candidate', (candidate) => {
-            peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
-        });
-
         return () => {
             socket.off('screen-share-started');
-            socket.off('participants-update');
+            socket.off('screen-share-stopped');
+            socket.off('offer');
+            socket.off('answer');
             socket.off('ice-candidate');
+            socket.off('chat-message');
+            socket.off('participants-update');
         };
     }, []);
 
@@ -84,7 +64,6 @@ const ScreenShare = () => {
                 peerConnection.current.close();
             }
 
-            // PeerConnection 설정 및 트랙 추가
             peerConnection.current = new RTCPeerConnection({ iceServers });
             localStream.current
                 .getTracks()
@@ -98,9 +77,10 @@ const ScreenShare = () => {
 
             const offer = await peerConnection.current.createOffer();
             await peerConnection.current.setLocalDescription(offer);
-            socket.emit('start-screen-share', offer); // Offer 전송
+            socket.emit('offer', offer);
 
             setIsSharing(true);
+            socket.emit('start-screen-share');
         } catch (error) {
             console.error('Error starting screen share:', error);
         }
@@ -111,6 +91,38 @@ const ScreenShare = () => {
         peerConnection.current.close();
         socket.emit('stop-screen-share');
         setIsSharing(false);
+    };
+
+    const handleRemoteScreenShare = (sharerId) => {
+        console.log('Screen share started by:', sharerId);
+    };
+
+    const stopRemoteScreenShare = () => {
+        console.log('Remote screen share stopped');
+    };
+
+    const handleOffer = async (offer) => {
+        if (peerConnection.current) {
+            peerConnection.current.close();
+        }
+
+        peerConnection.current = new RTCPeerConnection({ iceServers });
+        peerConnection.current.ontrack = (event) => {
+            videoRef.current.srcObject = event.streams[0];
+        };
+
+        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(offer));
+        const answer = await peerConnection.current.createAnswer();
+        await peerConnection.current.setLocalDescription(answer);
+        socket.emit('answer', answer);
+    };
+
+    const handleAnswer = async (answer) => {
+        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(answer));
+    };
+
+    const handleIceCandidate = (candidate) => {
+        peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
     };
 
     const sendMessage = (message) => {
@@ -146,8 +158,10 @@ const ScreenShare = () => {
                 ></video>
 
                 <div className="bg-gray-800 shadow-lg rounded-lg p-4 w-[21%] flex flex-col">
-                    <h3 className="text-lg font-semibold mb-4">On The Call ({participants.length})</h3>
-                    <ul className="text-sm space-y-2 mb-6 overflow-y-auto">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold">On The Call {participants.length}</h3>
+                    </div>
+                    <ul className="text-sm space-y-2 mb-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
                         {participants.map((participant) => (
                             <li key={participant.id} className="p-2 bg-gray-700 rounded-lg">
                                 {participant.nickname}
