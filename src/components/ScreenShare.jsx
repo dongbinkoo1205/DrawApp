@@ -3,8 +3,8 @@ import { io } from 'socket.io-client';
 import logo from '../assets/logo.png';
 import Chat from './Chat';
 
-// const socket = io('https://drawapp-ne15.onrender.com');
-const socket = io('http://localhost:8080');
+const socket = io('https://drawapp-ne15.onrender.com');
+// const socket = io('http://localhost:8080');
 const iceServers = [
     { urls: 'stun:stun.relay.metered.ca:80' },
     {
