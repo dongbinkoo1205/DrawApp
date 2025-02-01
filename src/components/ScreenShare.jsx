@@ -5,6 +5,7 @@ import Chat from './Chat';
 
 const socket = io('https://drawapp-ne15.onrender.com');
 // const socket = io('http://localhost:8080');
+
 const iceServers = [
     { urls: 'stun:stun.relay.metered.ca:80' },
     {
@@ -26,7 +27,8 @@ const ScreenShare = () => {
     const peerConnection = useRef(null);
     const localStream = useRef(null);
     const [participants, setParticipants] = useState([]); // 참여자들
-
+    const [nickName, setNickName] = useState([]); // 참여자들
+    console.log(participants);
     useEffect(() => {
         socket.on('screen-share-started', handleRemoteScreenShare);
         socket.on('screen-share-stopped', stopRemoteScreenShare);
@@ -37,8 +39,8 @@ const ScreenShare = () => {
             setMessages((prev) => [...prev, data]);
         });
         // 닉네임 입력 및 서버로 전송
-        const nickname = prompt('Enter your nickname:') || 'Anonymous';
-        socket.emit('join', nickname);
+        const nickName = prompt('Enter your nickname:') || 'Anonymous';
+        socket.emit('join', nickName);
         // 서버로부터 참여자 목록 수신
         socket.on('participants-update', (data) => {
             setParticipants(data);
@@ -164,7 +166,7 @@ const ScreenShare = () => {
                     <ul className="text-sm space-y-2 mb-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
                         {participants.map((participant) => (
                             <li key={participant.id} className="p-2 bg-gray-700 rounded-lg">
-                                {participant.nickname}
+                                {participant.nickName}
                             </li>
                         ))}
                     </ul>
