@@ -160,6 +160,7 @@ const ScreenShare = () => {
                     style={{ height: 'calc(100vh - 70px)' }}
                     ref={videoRef}
                     autoPlay
+                    muted
                     playsInline
                     className="w-[78%] h-full bg-black rounded-lg shadow-lg"
                 ></video>
