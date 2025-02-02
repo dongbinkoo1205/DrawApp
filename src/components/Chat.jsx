@@ -22,14 +22,12 @@ const Chat = ({ messages = [], onSendMessage, participants = [] }) => {
                     messages.map((msg, index) => {
                         // 첫 메시지이거나 이전 메시지와 보낸 사람이 다르면 닉네임 표시
                         const showNickname = index === 0 ? true : messages[index - 1].senderId !== msg.senderId;
-
+                     
                         return (
                             <li key={msg.id || index} className="bg-gray-600 p-2 rounded-lg text-sm text-gray-300">
                                 {showNickname ? (
                                     <span className="font-bold text-white">{getNickname(msg.senderId)}</span>
-                                ) : (
-                                    <dib className="p-4"></dib>
-                                )}
+                                ) : null}
                                 <span className={showNickname ? 'ml-2' : ''}>{msg.text}</span>
                             </li>
                         );
