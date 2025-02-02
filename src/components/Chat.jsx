@@ -17,25 +17,36 @@ const Chat = ({ messages = [], onSendMessage, participants = [] }) => {
     return (
         <div className="flex-1 flex flex-col  ">
             <h3 className="text-lg font-semibold mb-2">Chat</h3>
-            <ul className="flex-1 space-y-2  p-2 bg-gray-700 rounded-lg scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 overflow-scroll overflow-x-hidden scrollbar-custom">
+            <ul className="flex-1 space-y-2 p-2 bg-gray-700 rounded-lg scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 overflow-scroll overflow-x-hidden scrollbar-custom">
                 {messages.length > 0 ? (
-                    messages.map((msg, index) => {
-                        // 첫 메시지이거나 이전 메시지와 보낸 사람이 다르면 닉네임 표시
-                        const showNickname = index === 0 ? true : messages[index - 1].senderId !== msg.senderId;
-                     
+                    messages.map((msg, index, arr) => {
+                        const showNickname = index === 0 || arr[index - 1].senderId !== msg.senderId;
+
+                        // 닉네임을 표시해야 하는 경우: 새로운 <li> 생성
+                        if (showNickname) {
+                            return (
+                                <li
+                                    key={msg.senderId + index}
+                                    className="bg-gray-600 p-2 rounded-lg text-sm text-gray-300"
+                                >
+                                    <span className="font-bold text-white block">{getNickname(msg.senderId)}</span>
+                                    <span className="block">{msg.text}</span>
+                                </li>
+                            );
+                        }
+
+                        // 같은 사용자의 메시지: 기존 <li>에 추가
                         return (
-                            <li key={msg.id || index} className="bg-gray-600 p-2 rounded-lg text-sm text-gray-300">
-                                {showNickname ? (
-                                    <span className="font-bold text-white">{getNickname(msg.senderId)}</span>
-                                ) : null}
-                                <span className={showNickname ? 'ml-2' : ''}>{msg.text}</span>
-                            </li>
+                            <span key={msg.senderId + index} className="block ml-2 text-gray-300">
+                                {msg.text}
+                            </span>
                         );
                     })
                 ) : (
                     <li className="text-gray-400 text-center">No messages yet...</li>
                 )}
             </ul>
+
             <div className="mt-2">
                 <input
                     type="text"
