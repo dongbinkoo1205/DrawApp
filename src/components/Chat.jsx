@@ -20,7 +20,7 @@ const Chat = ({ messages = [], onSendMessage, participants = [] }) => {
             <ul className="flex-1 space-y-2  p-2 bg-gray-700 rounded-lg scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 overflow-scroll overflow-x-hidden scrollbar-custom">
                 {messages.length > 0 ? (
                     messages.map((msg, index) => {
-                        // 삼항 연산자: 첫 메시지이거나 이전 메시지와 보낸 사람이 다르면 닉네임 표시
+                        // 첫 메시지이거나 이전 메시지와 보낸 사람이 다르면 닉네임 표시
                         const showNickname = index === 0 ? true : messages[index - 1].senderId !== msg.senderId;
 
                         return (
