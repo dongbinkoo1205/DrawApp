@@ -19,29 +19,35 @@ const Chat = ({ messages = [], onSendMessage, participants = [] }) => {
             <h3 className="text-lg font-semibold mb-2">Chat</h3>
             <ul className="flex-1 space-y-2 p-2 bg-gray-700 rounded-lg scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 overflow-scroll overflow-x-hidden scrollbar-custom">
                 {messages.length > 0 ? (
-                    messages.map((msg, index, arr) => {
-                        const showNickname = index === 0 || arr[index - 1].senderId !== msg.senderId;
+                    messages
+                        .reduce((groupedMessages, msg, index) => {
+                            // 첫 번째 메시지이거나 이전 메시지와 보낸 사람이 다르면 새로운 그룹 생성
+                            const isNewGroup = index === 0 || messages[index - 1].senderId !== msg.senderId;
 
-                        // 닉네임을 표시해야 하는 경우: 새로운 <li> 생성
-                        if (showNickname) {
-                            return (
-                                <li
-                                    key={msg.senderId + index}
-                                    className="bg-gray-600 p-2 rounded-lg text-sm text-gray-300"
-                                >
-                                    <span className="font-bold text-white block">{getNickname(msg.senderId)}</span>
-                                    <span className="block">{msg.text}</span>
-                                </li>
-                            );
-                        }
+                            if (isNewGroup) {
+                                // 새로운 사용자 메시지 그룹 추가
+                                groupedMessages.push({
+                                    senderId: msg.senderId,
+                                    nickname: getNickname(msg.senderId),
+                                    messages: [msg.text],
+                                });
+                            } else {
+                                // 같은 사용자면 현재 그룹에 메시지 추가
+                                groupedMessages[groupedMessages.length - 1].messages.push(msg.text);
+                            }
 
-                        // 같은 사용자의 메시지: 기존 <li>에 추가
-                        return (
-                            <span key={msg.senderId + index} className="block ml-2 text-gray-300">
-                                {msg.text}
-                            </span>
-                        );
-                    })
+                            return groupedMessages;
+                        }, [])
+                        .map((group, index) => (
+                            <li key={index} className="bg-gray-600 p-2 rounded-lg text-sm text-gray-300">
+                                <span className="font-bold text-white block">{group.nickname}</span>
+                                {group.messages.map((text, idx) => (
+                                    <span key={idx} className="block ml-2">
+                                        {text}
+                                    </span>
+                                ))}
+                            </li>
+                        ))
                 ) : (
                     <li className="text-gray-400 text-center">No messages yet...</li>
                 )}
