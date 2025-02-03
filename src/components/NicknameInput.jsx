@@ -10,7 +10,7 @@ const NicknameInput = ({ onSubmit, selectedCharacter, setSelectedCharacter }) =>
         if (nickname.trim() && selectedCharacter) {
             onSubmit(nickname);
         } else {
-            alert('채팅에서 사용할 캐릭터와 닉네임을 입력해주세요.');
+            alert('채팅 참여를 위해서는 캐릭터 선택과 닉네임이 필요합니다!');
         }
     };
 

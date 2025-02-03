@@ -5,8 +5,8 @@ import Chat from './Chat';
 import NicknameInput from './NicknameInput';
 import './ScreenShare.css';
 import './Mediaquery.css';
-const socket = io('https://drawapp-ne15.onrender.com');
-// const socket = io('http://localhost:8080');
+// const socket = io('https://drawapp-ne15.onrender.com');
+const socket = io('http://localhost:8080');
 
 const iceServers = [
     { urls: 'stun:stun.relay.metered.ca:80' },
