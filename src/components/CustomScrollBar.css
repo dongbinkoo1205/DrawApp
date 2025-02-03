@@ -3,7 +3,7 @@
 /* 공통 스타일 (모든 스크롤바에 적용) */
 .scrollbar-custom {
     scrollbar-width: thin; /* Firefox용 */
-    scrollbar-color: #4a5568 #2d3748; /* thumb 색상과 배경색 */
+    scrollbar-color: #8897af #42587b; /* thumb 색상과 배경색 */
 }
 
 /* Webkit 기반 브라우저 (Chrome, Edge, Safari) */
@@ -13,12 +13,12 @@
 }
 
 .scrollbar-custom::-webkit-scrollbar-track {
-    background-color: #2d3748; /* 트랙 배경색 */
+    background-color: #8897af; /* 트랙 배경색 */
     border-radius: 8px;
 }
 
 .scrollbar-custom::-webkit-scrollbar-thumb {
-    background-color: #4a5568; /* thumb 색상 */
+    background-color: #8897af; /* thumb 색상 */
     border-radius: 9999px; /* 완전히 둥근 모서리 */
 }
 

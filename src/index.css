@@ -59,6 +59,12 @@
     font-style: normal;
     font-display: swap; /* 로드될 때까지 기본 폰트로 표시 */
 }
+@font-face {
+    font-family: 'Gyeonggi_Title_Medium';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2410-3@1.0/Title_Medium.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+}
 /* ABOUT 페이지 섹션01 폰트 */
 @font-face {
     font-family: 'MapoDacapo';
@@ -71,6 +77,12 @@
     font-family: 'Diphylleia-Regular';
     src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_JAMO@1.0/Diphylleia-Regular.woff2') format('woff2');
     font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'SUITE';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE.woff2') format('woff2');
+    font-weight: 500;
     font-style: normal;
 }
 .hana {
@@ -90,35 +102,17 @@
     font-family: 'Pretendard';
     font-weight: 700;
 }
-
+.font_suite {
+    font-family: 'SUITE';
+    font-weight: 500;
+}
 .font_kimm {
     font-family: 'KIMM_Bold', 'Pretendard' !important;
     font-weight: 700;
 }
-.font_SCD3 {
-    font-family: 'S-CoreDream';
-    font-weight: 300;
-}
-.font_SCD7 {
-    font-family: 'S-CoreDream';
-    font-weight: 700;
-}
-
-.font_Godo {
-    font-family: 'TTSahmyookUniversityR';
-    font-weight: normal;
-}
-.font_josun {
-    font-family: 'Chosunilbo_myungjo';
-    font-weight: normal;
-}
-.font_minsans {
-    font-family: 'MinSans-Regular';
-    font-weight: normal;
-}
-.font_Diphylleia {
-    font-family: 'Diphylleia-Regular';
-    font-weight: normal;
+.font_NEXON {
+    font-family: 'Gyeonggi_Title_Medium';
+    font-weight: 500;
 }
 
 /* 기본설정 CSS */

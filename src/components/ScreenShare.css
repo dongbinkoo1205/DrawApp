@@ -1,3 +1,34 @@
+/* 로고 말풍선 css */
+.ballon {
+    position: relative;
+    width: 3.5em;
+    height: 3.5em;
+    border-radius: 50%;
+    background-color: #cfe2ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.ballon img {
+    position: absolute;
+    top: 50%;
+    left: 6%;
+    transform: translateY(-50%);
+    z-index: 5;
+}
+
+.ballon:after {
+    border-bottom: 20px solid #cfe2ff;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 0px solid transparent;
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    right: -1px;
+    transform: rotate(16deg);
+}
+
 .avatar {
     position: relative;
     z-index: 1;
@@ -10,7 +41,7 @@
     width: 110%;
     height: 110%;
     content: '';
-    background-color: black;
+    background-color: #99bbff;
     transform: translate(-50%, -50%);
     z-index: 0;
     border-radius: 50%;
@@ -32,7 +63,7 @@
     width: 42px;
     height: 42px;
     content: '';
-    background-color: black;
+    background-color: #99bbff;
     transform: translate(-50%, -50%);
     z-index: 0;
     border-radius: 50%;

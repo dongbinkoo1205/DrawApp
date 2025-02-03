@@ -15,8 +15,8 @@ const NicknameInput = ({ onSubmit, selectedCharacter, setSelectedCharacter }) =>
     };
 
     return (
-        <div className="modalPop w-full h-full  absolute top-0 left-0  h-auto z-10 flex items-center justify-center Pretendard-r">
-            <div className="flex flex-col items-center justify-around min-h-70 text-white  bg-black w-[55%]  p-15 rounded-xl z-10  p-9">
+        <div className="modalPop w-full h-full  absolute top-0 left-0  h-auto z-10 flex items-center justify-center Pretendard-r ">
+            <div className="flex flex-col items-center justify-around min-h-70 text-white w-[45%]  p-15 rounded-xl z-10 bg-[#1764ff]  p-9">
                 <h1 className="text-2xl self-baseline Pretendard-b">
                     Participation
                     <span className="mt-3 text-base block Pretendard-r">
@@ -28,7 +28,7 @@ const NicknameInput = ({ onSubmit, selectedCharacter, setSelectedCharacter }) =>
                     setSelectedCharacter={setSelectedCharacter}
                     nickname={nickname}
                 />
-                <div className="customInputWrap mt-8 flex flex-col items-center space-y-4">
+                <div className="customInputWrap mt-8 flex flex-col items-center space-y-4 ">
                     <input
                         type="text"
                         value={nickname}
@@ -39,11 +39,16 @@ const NicknameInput = ({ onSubmit, selectedCharacter, setSelectedCharacter }) =>
                                 handleSubmit();
                             }
                         }}
-                        className="customInput border-none "
+                        className="customInput border-none text-[#fff]  Pretendard-r"
                     />
-                    <label style={{ opacity: nickname ? '0' : '1' }}>Nickname</label>
+                    <label className="text-[#fff]" style={{ opacity: nickname ? '0' : '1' }}>
+                        Nickname
+                    </label>
                 </div>
-                <span className="mt-5 block self-end" style={{ color: nickname ? 'lightgreen' : 'red' }}>
+                <span
+                    className="mt-5 block self-end text-[14px] font-semibold"
+                    style={{ color: nickname ? '#fff700' : 'red' }}
+                >
                     {nickname ? 'Enter로 참여하기' : '닉네임을 입력해주세요'}
                 </span>
             </div>

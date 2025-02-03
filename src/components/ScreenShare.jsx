@@ -5,6 +5,8 @@ import Chat from './Chat';
 import NicknameInput from './NicknameInput';
 import './ScreenShare.css';
 import './Mediaquery.css';
+
+// server
 // const socket = io('https://drawapp-ne15.onrender.com');
 const socket = io('http://localhost:8080');
 
@@ -23,15 +25,17 @@ const iceServers = [
 ];
 
 const ScreenShare = () => {
+    // State
     const [isSharing, setIsSharing] = useState(false);
     const [messages, setMessages] = useState([]);
-    const videoRef = useRef(null);
-    const peerConnection = useRef(null);
-    const localStream = useRef(null);
     const [participants, setParticipants] = useState([]); // 참여자들
     const [nickname, setNickname] = useState('');
     const [isNicknameSet, setIsNicknameSet] = useState(false);
     const [selectedCharacter, setSelectedCharacter] = useState(null);
+    // Ref
+    const videoRef = useRef(null);
+    const peerConnection = useRef(null);
+    const localStream = useRef(null);
 
     useEffect(() => {
         socket.on('screen-share-started', handleRemoteScreenShare);
@@ -148,7 +152,7 @@ const ScreenShare = () => {
     };
 
     return (
-        <div className="mainWrap min-h-screen max-h-[100vh] flex flex-col p-4 bg-gray-900 text-white Pretendard-r">
+        <div className="mainWrap min-h-screen max-h-[100vh] flex flex-col p-4 bg-[#f6f7fb]  text-[#1c292e] Pretendard-r">
             {!isNicknameSet && (
                 <NicknameInput
                     onSubmit={handleNicknameSubmit}
@@ -156,48 +160,55 @@ const ScreenShare = () => {
                     setSelectedCharacter={setSelectedCharacter}
                 />
             )}
-            <header className="h-[70px] p-4 bg-gray-800 shadow-lg flex items-center justify-between rounded-lg mb-4">
-                <div className="flex items-center gap-2">
-                    <img src={logo} alt="Logo" className="w-10 h-10 rounded-full object-contain" />
-                    <h2 className="text-2xl text-white hana">LinkUp</h2>
+            <header className="h-[70px] p-4 bg-[#f4f8fb] shadow-md flex items-center justify-between rounded-lg mb-4">
+                <div className="flex flex-wrap items-center gap-3">
+                    <span className="ballon">
+                        <img src={logo} alt="Logo" className="w-[2.8em] h-[2.8em] rounded-full object-contain" />
+                    </span>
+                    <h2 className="text-2xl text-[#1c292e] font_NEXON self-start relative">
+                        CollabLive
+                        <span className="w-[100%] whitespace-nowrap bottom-[-20px] left-[2px] block text-[11px] Pretendard-r absolute">
+                            협력의 새로운 방식 컬랩라이브
+                        </span>
+                    </h2>
                 </div>
                 <button
                     onClick={isSharing ? stopScreenShare : startScreenShare}
                     className={
                         isSharing
-                            ? 'px-5 py-2 bg-red-600 hover:bg-red-700 transition-colors text-white font-semibold rounded-lg'
-                            : 'px-5 py-2 bg-green-600 hover:bg-green-700 transition-colors text-white font-semibold rounded-lg'
+                            ? 'px-5 py-2 bg-red-600 hover:bg-red-700 transition-colors text-white font-bold rounded-lg Pretendard-r'
+                            : 'px-5 py-2 bg-[#004cfb] hover:bg-green-700 transition-colors text-white font-bold rounded-lg Pretendard-r '
                     }
                 >
-                    {isSharing ? 'Stop Meeting' : 'Start Meeting'}
+                    {isSharing ? '화면 공유 나가기' : '실시간 화면 공유'}
                 </button>
             </header>
 
-            <div className="mediaWrap flex flex-1 justify-between overflow-hidden gap-4">
+            <div className="mediaWrap flex flex-1 justify-between overflow-hidden gap-4 shadow-md">
                 <video
                     ref={videoRef}
                     autoPlay
                     muted
                     playsInline
-                    className="mediaVideo w-[72%] h-full bg-black rounded-lg shadow-lg h-[calc(100vh-70px)] "
+                    className="mediaVideo w-[72%] bg-[#f1f4fb] rounded-lg shadow-md h-[calc(100vh-70px)] "
                 ></video>
 
-                <div className="mediaChat bg-gray-800 shadow-lg rounded-lg p-4 w-[27%] flex flex-col scrollbar-custom overflow-y-scroll overflow-y-scroll overflow-x-hidden">
+                <div className="mediaChat bg-[#f8fbfc] shadow-md rounded-lg p-4 w-[27%] flex flex-col scrollbar-custom overflow-y-scroll overflow-y-scroll overflow-x-hidden">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold">Participants - {participants.length}</h3>
                     </div>
-                    <ul className="text-sm space-y-2 mb-6 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
+                    <ul className="text-sm space-y-2 mb-6 ">
                         {participants.map((participant) => (
-                            <li key={participant.id} className="w-full p-2 bg-gray-700 rounded-lg">
+                            <li key={participant.id} className="w-full p-2 bg-[#d6e3fd] rounded-lg shadow-md">
                                 <span className="flex items-center  ">
-                                    <span className="avatar mr-[7px]">
+                                    <span className="avatar mr-[7px] Pretendard-b">
                                         <img
                                             className="w-[40px] h-[40px] object-cover "
                                             src={participant.avatar}
                                             alt=""
                                         />
                                     </span>
-                                    <span className="truncate">{participant.nickname}</span>
+                                    <span className="truncate font-medium">{participant.nickname}</span>
                                 </span>
                             </li>
                         ))}

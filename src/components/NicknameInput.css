@@ -23,11 +23,11 @@ input.customInput {
     font-size: 16px;
     border: none;
     width: 100%;
-    border-bottom: solid #aaaaaa 1px;
     padding-bottom: 10px;
     padding-left: 10px;
     position: relative;
-    background: none;
+    background: #ffffff1a;
+    border-radius: 5px;
     z-index: 5;
     color: white;
 }
@@ -53,10 +53,10 @@ input.customInput:focus {
 
 .customInputWrap label {
     position: absolute;
-    color: #aaa;
-    left: 0%;
+    color: #fff;
+    left: 10px;
     font-size: 15px;
-    bottom: 8px;
+    bottom: 9px;
     transition: all 0.2s;
 }
 
@@ -64,7 +64,7 @@ input.customInput:focus {
 .customInputt:valid ~ label {
     font-size: 13px;
     bottom: 40px;
-    color: #666;
+    color: #ccc;
 }
 
 .customInput:focus ~ span,
