@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import mimo1 from '../assets/mimo1.gif';
 import mimo2 from '../assets/mimo2.gif';
 
-const [clickAt, setClickAt] = useState(true);
 const characters = [
     { id: 'char1', avatar: mimo1 },
     { id: 'char2', avatar: mimo2 },
 ];
 
 const CharacterSelector = ({ selectedCharacter, setSelectedCharacter }) => {
+    const [clickAt, setClickAt] = useState(true);
+
     const handleClick = (char) => {
         setSelectedCharacter(char); // 선택된 캐릭터 설정
         setClickAt(!clickAt); // 토글 상태 변경
