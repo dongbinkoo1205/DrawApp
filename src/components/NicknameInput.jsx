@@ -24,7 +24,7 @@ const NicknameInput = ({ onSubmit, selectedCharacter, setSelectedCharacter }) =>
                         value={nickname}
                         onChange={(e) => setNickname(e.target.value)}
                         placeholder="닉네임을 입력해주세요."
-                        className="p-2 rounded-lg text-black mb-4"
+                        className="p-2 rounded-lg text-black "
                     />
                     <button onClick={handleSubmit} className="px-4 py-2  text-white rounded-lg">
                         참여하기

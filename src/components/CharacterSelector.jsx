@@ -19,9 +19,7 @@ const CharacterSelector = ({ selectedCharacter, setSelectedCharacter }) => {
                     key={char.id}
                     onClick={() => handleClick(char)}
                     className={`w-1/2 h-full flex transition-all duration-500 justify-center items-center relative ${
-                        selectedCharacter?.id === char.id
-                            ? 'bg-gradient-to-br from-blue-500 to-purple-800'
-                            : 'bg-gray-800'
+                        selectedCharacter?.id === char.id ? 'bg-white' : 'bg-black'
                     } hover:scale-105 transform`}
                 >
                     <div className="flex flex-col justify-center items-center px-8 text-center">
