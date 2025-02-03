@@ -18,7 +18,7 @@ const CharacterSelector = ({ selectedCharacter, setSelectedCharacter }) => {
                 <button
                     key={char.id}
                     onClick={() => handleClick(char)}
-                    className={`w-1/2 h-full flex transition-all duration-300  justify-center items-center${
+                    className={`w-1/2 h-full flex transition-all duration-300  justify-center items-center ${
                         selectedCharacter?.id === char.id ? 'bg-blue-100' : 'bg-gray-100'
                     }`}
                 >
