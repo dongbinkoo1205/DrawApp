@@ -18,12 +18,14 @@ const CharacterSelector = ({ selectedCharacter, setSelectedCharacter }) => {
                 <button
                     key={char.id}
                     onClick={() => handleClick(char)}
-                    className={`w-1/2 h-full flex flex-col items-center justify-center gap-4 p-6 transition-all duration-300 ${
-                        selectedCharacter?.id === char.id ? 'bg-blue-200' : 'bg-gray-100'
+                    className={`w-1/2 h-full flex transition-all duration-300 ${
+                        selectedCharacter?.id === char.id ? 'bg-blue-100' : 'bg-gray-100'
                     }`}
                 >
-                    <img src={char.avatar} alt={char.name} className="w-40 h-40 object-contain" />
-                    <h2 className="text-xl font-bold">{char.name}</h2>
+                    <div className="flex flex-col justify-center items-center px-8 text-center">
+                        <img src={char.avatar} alt={char.name} className="w-60 h-60 object-contain mb-4" />
+                        <h2 className="text-4xl font-bold">{char.name}</h2>
+                    </div>
                 </button>
             ))}
         </div>
