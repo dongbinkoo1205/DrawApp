@@ -5,8 +5,8 @@ import Chat from './Chat';
 import NicknameInput from './NicknameInput';
 import './ScreenShare.css';
 import './Mediaquery.css';
-const socket = io('https://drawapp-ne15.onrender.com');
-// const socket = io('http://localhost:8080');
+// const socket = io('https://drawapp-ne15.onrender.com');
+const socket = io('http://localhost:8080');
 
 const iceServers = [
     { urls: 'stun:stun.relay.metered.ca:80' },
@@ -193,11 +193,11 @@ const ScreenShare = () => {
                                     <span className="avatar mr-[7px]">
                                         <img
                                             className="w-[40px] h-[40px] object-cover "
-                                            src={participant.nickname.avatar}
+                                            src={participant.avatar}
                                             alt=""
                                         />
                                     </span>
-                                    <span className="truncate">{participant.nickname.nickname}</span>
+                                    <span className="truncate">{participant.nickname}</span>
                                 </span>
                             </li>
                         ))}
