@@ -13,8 +13,7 @@ const CharacterSelector = ({ selectedCharacter, setSelectedCharacter }) => {
     };
 
     return (
-        <div className="w-full h-auto">
-            <div className="flex rounded-lg overflow-hidden shadow-xl bg-opacity-80 absolute top-0 left-0 w-4/5 h-auto z-<10>">
+            <div className="flex rounded-lg overflow-hidden shadow-xl bg-opacity-80">
                 {characters.map((char) => (
                     <button
                         key={char.id}
@@ -37,7 +36,6 @@ const CharacterSelector = ({ selectedCharacter, setSelectedCharacter }) => {
                     </button>
                 ))}
             </div>
-        </div>
     );
 };
 
