@@ -14,7 +14,7 @@ const NicknameInput = ({ onSubmit, selectedCharacter, setSelectedCharacter }) =>
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 text-white">
+        <div className="flex flex-col items-center justify-center min-h-screen  text-white">
             <h1 className="text-2xl font-bold mb-4">채팅에서 사용할 캐릭터와 이름을 입력해주세요.</h1>
             <CharacterSelector selectedCharacter={selectedCharacter} setSelectedCharacter={setSelectedCharacter} />
             <input
@@ -24,7 +24,7 @@ const NicknameInput = ({ onSubmit, selectedCharacter, setSelectedCharacter }) =>
                 placeholder="닉네임을 입력해주세요."
                 className="p-2 rounded-lg text-black mb-4"
             />
-            <button onClick={handleSubmit} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+            <button onClick={handleSubmit} className="px-4 py-2  text-white rounded-lg">
                 참여하기
             </button>
         </div>
