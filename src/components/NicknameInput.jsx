@@ -16,7 +16,7 @@ const NicknameInput = ({ onSubmit, selectedCharacter, setSelectedCharacter }) =>
 
     return (
         <div className="modalPop w-full h-full  absolute top-0 left-0  h-auto z-10 flex items-center justify-center">
-            <div className="flex flex-col items-center justify-around min-h-70 text-white  bg-black w-[90%] h-70p p-15 rounded-lg z-10 pl-2 pr-2">
+            <div className="flex flex-col items-center justify-around min-h-70 text-white  bg-black w-[90%] h-70p p-15 rounded-lg z-10 pl-5 pr-5">
                 <h1 className="text-2xl font-bold self-baseline">
                     Participation
                     <span className="mt-2 text-sm block">채팅에서 사용할 캐릭터와 이름을 입력해주세요.</span>

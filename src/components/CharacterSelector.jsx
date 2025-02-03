@@ -26,7 +26,7 @@ const CharacterSelector = ({ selectedCharacter, setSelectedCharacter }) => {
                         <img
                             src={char.avatar}
                             alt={char.name}
-                            className="w-71 h-71 object-contain mb-4 opacity-90 hover:opacity-100"
+                            className="w-70 h-70 object-contain mb-4 opacity-90 hover:opacity-100"
                         />
                         <h2 className="text-3xl font-extrabold tracking-wide text-white">{char.name}</h2>
                     </div>
