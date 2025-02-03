@@ -6,6 +6,7 @@ module.exports = {
             height: {
                 '70p': '70%', // 70% 높이 추가
             },
+            
         },
     },
     plugins: [

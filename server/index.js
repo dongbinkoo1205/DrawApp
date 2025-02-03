@@ -17,11 +17,16 @@ const io = new Server(server, {
 let activeScreenSharer = null;
 let participants = []; // 참여자 목록
 io.on('connection', (socket) => {
-    socket.on('join', (nickname) => {
-        // 새로운 참여자 추가
-        participants.push({ id: socket.id, nickname });
-        io.emit('participants-update', participants); // 참여자 목록 전송
+    socket.on('join', (nicknameData) => {
+        // 전달받은 객체에서 avatar와 nickname을 분리
+        participants.push({
+            id: socket.id,
+            avatar: nicknameData.avatar,
+            nickname: nicknameData.nickname,
+        });
+        io.emit('participants-update', participants);
     });
+
     if (activeScreenSharer) {
         socket.emit('screen-share-started', activeScreenSharer);
     }

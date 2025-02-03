@@ -1,0 +1,44 @@
+.avatar {
+    position: relative;
+    z-index: 1;
+}
+
+.avatar::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 110%;
+    height: 110%;
+    content: '';
+    background-color: black;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    border-radius: 50%;
+}
+.avatar img {
+    position: relative;
+    z-index: 1;
+    object-fit: cover;
+}
+
+.chatAvatar {
+    position: relative;
+    z-index: 1;
+}
+.chatAvatar::after {
+    position: absolute;
+    top: 50%;
+    left: 46.4%;
+    width: 42px;
+    height: 42px;
+    content: '';
+    background-color: black;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    border-radius: 50%;
+}
+.chatAvatar img {
+    position: relative;
+    z-index: 1;
+    object-fit: cover;
+}

@@ -3,7 +3,8 @@ import { io } from 'socket.io-client';
 import logo from '../assets/logo.png';
 import Chat from './Chat';
 import NicknameInput from './NicknameInput';
-
+import './ScreenShare.css';
+import './Mediaquery.css';
 const socket = io('https://drawapp-ne15.onrender.com');
 // const socket = io('http://localhost:8080');
 
@@ -31,7 +32,6 @@ const ScreenShare = () => {
     const [nickname, setNickname] = useState('');
     const [isNicknameSet, setIsNicknameSet] = useState(false);
     const [selectedCharacter, setSelectedCharacter] = useState(null);
-    console.log(participants);
 
     useEffect(() => {
         socket.on('screen-share-started', handleRemoteScreenShare);
@@ -58,11 +58,15 @@ const ScreenShare = () => {
         };
     }, []);
     const handleNicknameSubmit = (nicknameInput) => {
-        const fullNickname = `${selectedCharacter.avatar} ${nicknameInput}`;
-        setNickname(fullNickname);
+        const nicknameData = {
+            avatar: selectedCharacter.avatar, // 아바타 이미지 경로
+            nickname: nicknameInput, // 입력한 닉네임
+        };
+        setNickname(nicknameData);
         setIsNicknameSet(true);
-        socket.emit('join', fullNickname);
+        socket.emit('join', nicknameData); // 객체 형태로 데이터 전송
     };
+
     const startScreenShare = async () => {
         try {
             localStream.current = await navigator.mediaDevices.getDisplayMedia({ video: true });
@@ -135,25 +139,16 @@ const ScreenShare = () => {
 
     const sendMessage = (text) => {
         const message = {
-            senderId: socket.id, // 소켓 ID 전송
-            sender: nickname, // 닉네임도 전송 (서버에서는 필요할 수 있음)
-            text,
+            senderId: socket.id,
+            avatar: nickname.avatar,
+            nickname: nickname.nickname,
+            text: text,
         };
         socket.emit('chat-message', message); // 메시지 전송
     };
 
-    // if (!isNicknameSet) {
-    //     return (
-    //         <NicknameInput
-    //             onSubmit={handleNicknameSubmit}
-    //             selectedCharacter={selectedCharacter}
-    //             setSelectedCharacter={setSelectedCharacter}
-    //         />
-    //     );
-    // }
-
     return (
-        <div className="min-h-screen max-h-[100vh] flex flex-col p-4 bg-gray-900 text-white font_minsans">
+        <div className="mainWrap min-h-screen max-h-[100vh] flex flex-col p-4 bg-gray-900 text-white Pretendard-r">
             {!isNicknameSet && (
                 <NicknameInput
                     onSubmit={handleNicknameSubmit}
@@ -178,24 +173,32 @@ const ScreenShare = () => {
                 </button>
             </header>
 
-            <div className="flex flex-1 justify-between overflow-hidden gap-4">
+            <div className="mediaWrap flex flex-1 justify-between overflow-hidden gap-4">
                 <video
-                    style={{ height: 'calc(100vh - 70px)' }}
                     ref={videoRef}
                     autoPlay
                     muted
                     playsInline
-                    className="w-[78%] h-full bg-black rounded-lg shadow-lg"
+                    className="mediaVideo w-[72%] h-full bg-black rounded-lg shadow-lg h-[calc(100vh-70px)] "
                 ></video>
 
-                <div className="bg-gray-800 shadow-lg rounded-lg p-4 w-[21%] flex flex-col scrollbar-custom overflow-y-scroll overflow-y-scroll overflow-x-hidden">
+                <div className="mediaChat bg-gray-800 shadow-lg rounded-lg p-4 w-[27%] flex flex-col scrollbar-custom overflow-y-scroll overflow-y-scroll overflow-x-hidden">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold">Participants - {participants.length}</h3>
                     </div>
                     <ul className="text-sm space-y-2 mb-6 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
                         {participants.map((participant) => (
-                            <li key={participant.id} className="p-2 bg-gray-700 rounded-lg">
-                                {participant.nickname}
+                            <li key={participant.id} className="w-full p-2 bg-gray-700 rounded-lg">
+                                <span className="flex items-center  ">
+                                    <span className="avatar mr-[7px]">
+                                        <img
+                                            className="w-[40px] h-[40px] object-cover "
+                                            src={participant.nickname.avatar}
+                                            alt=""
+                                        />
+                                    </span>
+                                    <span className="truncate">{participant.nickname.nickname}</span>
+                                </span>
                             </li>
                         ))}
                     </ul>

@@ -11,3 +11,63 @@
     background-color: rgba(255, 255, 192, 0.1);
     backdrop-filter: blur(5px);
 }
+
+/* 커스텀 인풋 css */
+
+.customInputWrap {
+    position: relative;
+    width: 100%;
+}
+
+input.customInput {
+    font-size: 16px;
+    border: none;
+    width: 100%;
+    border-bottom: solid #aaaaaa 1px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    position: relative;
+    background: none;
+    z-index: 5;
+    color: white;
+}
+
+input.customInput::placeholder {
+    color: #aaaaaa;
+}
+input.customInput:focus {
+    outline: none;
+}
+
+.customInputWrap span {
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: 0%; /* right로만 바꿔주면 오 - 왼 */
+    background-color: #666;
+    width: 0;
+    height: 2px;
+    border-radius: 2px;
+    transition: 0.5s;
+}
+
+.customInputWrap label {
+    position: absolute;
+    color: #aaa;
+    left: 0%;
+    font-size: 15px;
+    bottom: 8px;
+    transition: all 0.2s;
+}
+
+.customInput:focus ~ label,
+.customInputt:valid ~ label {
+    font-size: 13px;
+    bottom: 40px;
+    color: #666;
+}
+
+.customInput:focus ~ span,
+.customInput:valid ~ span {
+    width: 100%;
+}
