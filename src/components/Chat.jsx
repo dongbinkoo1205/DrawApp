@@ -16,7 +16,7 @@ const Chat = ({ messages = [], onSendMessage, participants = [] }) => {
 
     return (
         <div className="flex-1 flex flex-col  ">
-            <h3 className="text-lg font-semibold mb-2">Chat</h3>
+            <h3 className="text-lg font-semibold mb-2">Group Chat</h3>
             <ul className="flex-1 space-y-2 p-2 bg-gray-700 rounded-lg scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 overflow-scroll overflow-x-hidden scrollbar-custom">
                 {messages.length > 0 ? (
                     messages

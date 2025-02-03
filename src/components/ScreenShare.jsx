@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import logo from '../assets/logo.png';
 import Chat from './Chat';
+import NicknameInput from './NicknameInput';
 
 const socket = io('https://drawapp-ne15.onrender.com');
 // const socket = io('http://localhost:8080');
@@ -27,8 +28,11 @@ const ScreenShare = () => {
     const peerConnection = useRef(null);
     const localStream = useRef(null);
     const [participants, setParticipants] = useState([]); // 참여자들
-    console.log(participants);
     const [nickname, setNickname] = useState('');
+    const [isNicknameSet, setIsNicknameSet] = useState(false);
+    const [selectedCharacter, setSelectedCharacter] = useState(null);
+    console.log(participants);
+
     useEffect(() => {
         socket.on('screen-share-started', handleRemoteScreenShare);
         socket.on('screen-share-stopped', stopRemoteScreenShare);
@@ -38,10 +42,10 @@ const ScreenShare = () => {
         socket.on('chat-message', (data) => {
             setMessages((prev) => [...prev, data]);
         });
-        // 닉네임 입력 및 서버로 전송
-        const nickName = prompt('Enter your nickname:') || 'Anonymous';
-        setNickname(nickName);
-        socket.emit('join', nickName);
+        // // 닉네임 입력 및 서버로 전송
+        // const nickName = prompt('Enter your nickname:') || 'Anonymous';
+        // setNickname(nickName);
+        // socket.emit('join', nickName);
         // 서버로부터 참여자 목록 수신
         socket.on('participants-update', (data) => {
             setParticipants(data);
@@ -57,7 +61,12 @@ const ScreenShare = () => {
             socket.off('participants-update');
         };
     }, []);
-
+    const handleNicknameSubmit = (nicknameInput) => {
+        const fullNickname = `${selectedCharacter.avatar} ${nicknameInput}`;
+        setNickname(fullNickname);
+        setIsNicknameSet(true);
+        socket.emit('join', fullNickname);
+    };
     const startScreenShare = async () => {
         try {
             localStream.current = await navigator.mediaDevices.getDisplayMedia({ video: true });
@@ -137,6 +146,16 @@ const ScreenShare = () => {
         socket.emit('chat-message', message); // 메시지 전송
     };
 
+    if (!isNicknameSet) {
+        return (
+            <NicknameInput
+                onSubmit={handleNicknameSubmit}
+                selectedCharacter={selectedCharacter}
+                setSelectedCharacter={setSelectedCharacter}
+            />
+        );
+    }
+
     return (
         <div className="min-h-screen max-h-[100vh] flex flex-col p-4 bg-gray-900 text-white font_minsans">
             <header className="h-[70px] p-4 bg-gray-800 shadow-lg flex items-center justify-between rounded-lg mb-4">
@@ -168,7 +187,7 @@ const ScreenShare = () => {
 
                 <div className="bg-gray-800 shadow-lg rounded-lg p-4 w-[21%] flex flex-col scrollbar-custom overflow-y-scroll overflow-y-scroll overflow-x-hidden">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold">On The Call {participants.length}</h3>
+                        <h3 className="text-lg font-semibold">Participants - {participants.length}</h3>
                     </div>
                     <ul className="text-sm space-y-2 mb-6 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
                         {participants.map((participant) => (
