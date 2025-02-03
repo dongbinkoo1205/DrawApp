@@ -142,18 +142,25 @@ const ScreenShare = () => {
         socket.emit('chat-message', message); // 메시지 전송
     };
 
-    if (!isNicknameSet) {
-        return (
-            <NicknameInput
-                onSubmit={handleNicknameSubmit}
-                selectedCharacter={selectedCharacter}
-                setSelectedCharacter={setSelectedCharacter}
-            />
-        );
-    }
+    // if (!isNicknameSet) {
+    //     return (
+    //         <NicknameInput
+    //             onSubmit={handleNicknameSubmit}
+    //             selectedCharacter={selectedCharacter}
+    //             setSelectedCharacter={setSelectedCharacter}
+    //         />
+    //     );
+    // }
 
     return (
         <div className="min-h-screen max-h-[100vh] flex flex-col p-4 bg-gray-900 text-white font_minsans">
+            {!isNicknameSet && (
+                <NicknameInput
+                    onSubmit={handleNicknameSubmit}
+                    selectedCharacter={selectedCharacter}
+                    setSelectedCharacter={setSelectedCharacter}
+                />
+            )}
             <header className="h-[70px] p-4 bg-gray-800 shadow-lg flex items-center justify-between rounded-lg mb-4">
                 <div className="flex items-center gap-2">
                     <img src={logo} alt="Logo" className="w-10 h-10 rounded-full object-contain" />

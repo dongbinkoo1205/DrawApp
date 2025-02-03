@@ -3,8 +3,8 @@ import mimo1 from '../assets/mimo1.gif';
 import mimo2 from '../assets/mimo2.gif';
 
 const characters = [
-    { id: 'char1', avatar: mimo1, name: 'Character 1' },
-    { id: 'char2', avatar: mimo2, name: 'Character 2' },
+    { id: 'char1', avatar: mimo1 },
+    { id: 'char2', avatar: mimo2 },
 ];
 
 const CharacterSelector = ({ selectedCharacter, setSelectedCharacter }) => {
@@ -30,7 +30,7 @@ const CharacterSelector = ({ selectedCharacter, setSelectedCharacter }) => {
                             alt={char.name}
                             className="w-72 h-72 object-contain mb-4 opacity-90 hover:opacity-100"
                         />
-                        <h2 className="text-3xl font-extrabold tracking-wide">{char.name}</h2>
+                        <h2 className="text-3xl font-extrabold tracking-wide text-white">{char.name}</h2>
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-800 opacity-20 mix-blend-overlay pointer-events-none"></div>
                 </button>

@@ -15,7 +15,7 @@ const NicknameInput = ({ onSubmit, selectedCharacter, setSelectedCharacter }) =>
 
     return (
         <div className="flex flex-col items-center justify-around min-h-screen text-white w-full bg-gradient-to-r from-purple-800 via-indigo-900 to-black">
-            <h1 className="text-2xl font-bold mb-8 animate-pulse">채팅에서 사용할 캐릭터와 이름을 입력해주세요.</h1>
+            <h1 className="text-2xl font-bold animate-pulse">채팅에서 사용할 캐릭터와 이름을 입력해주세요.</h1>
             <CharacterSelector selectedCharacter={selectedCharacter} setSelectedCharacter={setSelectedCharacter} />
             <div>
                 <input
