@@ -1,0 +1,13 @@
+.modalPop {
+    position: relative;
+}
+.modalPop::before {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    content: '';
+    background-color: rgba(255, 255, 192, 0.1);
+    backdrop-filter: blur(5px);
+}
