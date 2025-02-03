@@ -19,7 +19,7 @@ const CharacterSelector = ({ selectedCharacter, setSelectedCharacter }) => {
                     key={char.id}
                     onClick={() => handleClick(char)}
                     className={`w-1/2 h-full flex transition-all duration-300  justify-center items-center ${
-                        selectedCharacter?.id === char.id ? 'bg-blue-100' : 'bg-gray-100'
+                        selectedCharacter?.id === char.id ? 'bg-white' : 'bg-black'
                     }`}
                 >
                     <div className="flex flex-col justify-center items-center px-8 text-center">

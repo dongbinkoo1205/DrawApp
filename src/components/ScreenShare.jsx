@@ -42,11 +42,7 @@ const ScreenShare = () => {
         socket.on('chat-message', (data) => {
             setMessages((prev) => [...prev, data]);
         });
-        // // 닉네임 입력 및 서버로 전송
-        // const nickName = prompt('Enter your nickname:') || 'Anonymous';
-        // setNickname(nickName);
-        // socket.emit('join', nickName);
-        // 서버로부터 참여자 목록 수신
+
         socket.on('participants-update', (data) => {
             setParticipants(data);
         });
