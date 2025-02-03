@@ -1,7 +1,6 @@
 @media screen and (max-width: 1250px) {
     .mainWrap {
         max-height: none;
-        max-height: ;
     }
     .mediaWrap {
         flex-direction: column;
