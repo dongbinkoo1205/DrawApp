@@ -8,11 +8,9 @@ const characters = [
 ];
 
 const CharacterSelector = ({ selectedCharacter, setSelectedCharacter }) => {
-    const [clickAt, setClickAt] = useState(true);
-
+    const [selectedCharacter, setSelectedCharacter] = useState(null); // 선택된 캐릭터 상태 관리
     const handleClick = (char) => {
         setSelectedCharacter(char); // 선택된 캐릭터 설정
-        setClickAt(!clickAt); // 토글 상태 변경
     };
     return (
         <div className="flex w-full h-screen">
@@ -21,7 +19,7 @@ const CharacterSelector = ({ selectedCharacter, setSelectedCharacter }) => {
                     key={char.id}
                     onClick={() => handleClick(char)}
                     className={`w-1/2 h-full flex flex-col items-center justify-center gap-4 p-6 ${
-                        clickAt ? 'bg-blue-200' : 'bg-gray-100'
+                        selectedCharacter?.id === char.id ? 'bg-blue-200' : 'bg-gray-100'
                     }`}
                 >
                     <img src={char.avatar} alt={char.name} className="w-40 h-40 object-contain" />
