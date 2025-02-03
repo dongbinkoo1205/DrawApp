@@ -23,7 +23,7 @@ const CharacterSelector = ({ selectedCharacter, setSelectedCharacter }) => {
                     }`}
                 >
                     <div className="flex flex-col justify-center items-center px-8 text-center">
-                        <img src={char.avatar} alt={char.name} className="w-60 h-60 object-contain mb-4" />
+                        <img src={char.avatar} alt={char.name} className="w-100 h-100 object-contain mb-4" />
                         <h2 className="text-4xl font-bold">{char.name}</h2>
                     </div>
                 </button>
