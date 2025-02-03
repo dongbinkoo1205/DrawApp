@@ -15,17 +15,17 @@ const NicknameInput = ({ onSubmit, selectedCharacter, setSelectedCharacter }) =>
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 text-white">
-            <h1 className="text-2xl font-bold mb-4">Select Your Character</h1>
+            <h1 className="text-2xl font-bold mb-4">채팅에서 사용할 캐릭터와 이름을 입력해주세요.</h1>
             <CharacterSelector selectedCharacter={selectedCharacter} setSelectedCharacter={setSelectedCharacter} />
             <input
                 type="text"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
-                placeholder="Enter your nickname"
+                placeholder="닉네임을 입력해주세요."
                 className="p-2 rounded-lg text-black mb-4"
             />
             <button onClick={handleSubmit} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
-                Join Meeting
+                참여하기
             </button>
         </div>
     );
