@@ -1,8 +1,11 @@
 import CharacterSelector from './CharacterSelector';
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { MediaQueryContext } from '../Context/MediaQueryContext';
 import './NicknameInput.css';
 
 const NicknameInput = ({ onSubmit, selectedCharacter, setSelectedCharacter }) => {
+    const { isMobile } = useContext(MediaQueryContext);
+
     const [nickname, setNickname] = useState('');
 
     const handleSubmit = () => {
@@ -16,10 +19,14 @@ const NicknameInput = ({ onSubmit, selectedCharacter, setSelectedCharacter }) =>
 
     return (
         <div className="modalPop w-full h-full  absolute top-0 left-0  h-auto z-10 flex items-center justify-center Pretendard-r ">
-            <div className="flex flex-col items-center justify-around min-h-70 text-white w-[45%]  p-15 rounded-xl z-10 bg-[#1764ff]  p-9">
+            <div
+                className={`flex flex-col items-center justify-around min-h-70 text-white ${
+                    isMobile ? 'w-[90%] p-5' : 'w-[45%] p-15'
+                }  rounded-xl z-10 bg-[#1764ff] p-9`}
+            >
                 <h1 className="text-2xl self-baseline Pretendard-b">
                     Participation
-                    <span className="mt-3 text-base block Pretendard-r">
+                    <span className={`mt-3  block Pretendard-r ${isMobile ? 'text-[14px]' : 'text-base'}`}>
                         채팅에서 사용할 캐릭터와 이름을 입력해주세요.
                     </span>
                 </h1>
